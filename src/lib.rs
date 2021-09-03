@@ -1,8 +1,25 @@
-pub mod player;
+mod player;
+mod sheet;
 
-pub enum Timer {
-	Ticker(Ticker),
-	Absolute(f64),
+use std::{
+	thread,
+	time::Duration,
+};
+
+pub use player::*;
+pub use sheet::*;
+
+pub trait Timer {
+	fn tick_len_micros(&self) -> f64;
+	fn change_tempo(&mut self, tempo: u32);
+
+	fn sleep(&self, n_ticks: u32) {
+		let t = self.tick_len_micros() * n_ticks as f64;
+
+		if t > 0.0 {
+			thread::sleep(Duration::from_micros(t as u64));
+		}
+	}
 }
 
 pub struct Ticker {
@@ -23,8 +40,22 @@ impl Ticker {
 		s.change_tempo(tempo);
 		s
 	}
+}
 
-	pub fn change_tempo(&mut self, tempo: u32) {
+impl Timer for Ticker {
+	fn tick_len_micros(&self) -> f64 {
+		self.micros_per_tick
+	}
+
+	fn change_tempo(&mut self, tempo: u32) {
 		self.micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
 	}
+}
+
+impl Timer for f64 {
+	fn tick_len_micros(&self) -> f64 {
+		*self
+	}
+
+	fn change_tempo(&mut self, _: u32) {}
 }

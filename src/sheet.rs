@@ -6,7 +6,7 @@ use midly::{
 };
 
 pub type Tracks<'a> = Vec<Vec<TrackEvent<'a>>>;
-type Offsets<'a> = Vec<Option<Vec<TrackEventKind<'a>>>>;
+type Offsets<'a> = Vec<Vec<TrackEventKind<'a>>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Moment<'a> {
@@ -37,26 +37,27 @@ impl<'a> Sheet<'a> {
 	fn join_moment_offsets(mut offsets: Vec<Offsets<'a>>) -> Self {
 		let cap = offsets.iter().map(|o| o.len()).max().unwrap();
 		let mut moments = Vec::with_capacity(cap);
-		let mut none_counter = 0_u32;
+		let mut empty_counter = 0_u32;
 
 		for i in 0..cap {
 			let mut merged_moments = Vec::new();
 			for track in &mut offsets {
 				if i < track.len() {
-					if let Some(moment) = mem::take(&mut track[i]) {
+					let moment = mem::take(&mut track[i]);
+					if !moment.is_empty() {
 						merged_moments.extend(moment);
 					}
 				}
 			}
 
 			if merged_moments.is_empty() {
-				none_counter += 1;
+				empty_counter += 1;
 			} else {
 				moments.push(Moment {
-					delta: none_counter,
+					delta: empty_counter,
 					events: merged_moments,
 				});
-				none_counter = 0;
+				empty_counter = 0;
 			}
 		}
 
@@ -65,25 +66,13 @@ impl<'a> Sheet<'a> {
 }
 
 fn map_moments<'a>(events: &[TrackEvent<'a>]) -> Offsets<'a> {
-	let mut map = Vec::new();
-	let mut i = 0_usize;
-	while i < events.len() {
-		let event = events[i];
-		i += 1;
-		let mut moment = vec![event.kind];
-		map.extend((0..(u32::from(event.delta))).map(|_| None));
+	let total_frames: usize = events.iter().map(|e| u32::from(e.delta) as usize).sum();
+	let mut map: Offsets = vec![Vec::new(); total_frames + 1];
+	let mut cur_pos = 0_usize;
 
-		if i >= events.len() {
-			map.push(Some(moment));
-			break;
-		}
-
-		moment.extend(events[i..].iter().take_while(|e| e.delta == 0).map(|e| {
-			i += 1;
-			e.kind
-		}));
-
-		map.push(Some(moment))
+	for event in events {
+		cur_pos += u32::from(event.delta) as usize;
+		map[cur_pos].push(event.kind);
 	}
 
 	map

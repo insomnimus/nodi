@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub struct Player<T: Timer> {
-	con: MidiOutputConnection,
+	pub con: MidiOutputConnection,
 	timer: T,
 }
 

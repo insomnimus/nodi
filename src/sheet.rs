@@ -1,10 +1,12 @@
+use std::mem;
+
 use midly::{
 	TrackEvent,
 	TrackEventKind,
 };
 
 pub type Tracks<'a> = Vec<Vec<TrackEvent<'a>>>;
-type Offsets<'a> = Vec<Option<TrackEventKind<'a>>>;
+type Offsets<'a> = Vec<Option<Vec<TrackEventKind<'a>>>>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Moment<'a> {
@@ -16,9 +18,12 @@ pub(crate) struct Moment<'a> {
 pub struct Sheet<'a>(pub(crate) Vec<Moment<'a>>);
 
 impl<'a> Sheet<'a> {
-	pub fn new(tracks: Tracks<'a>) -> Self {
-		let offsets = tracks.into_iter().map(map_offsets).collect::<Vec<_>>();
-		Self::join_offsets(&offsets)
+	pub fn parallel(tracks: Tracks<'a>) -> Self {
+		let offsets = tracks
+			.into_iter()
+			.map(|t| map_moments(&t))
+			.collect::<Vec<_>>();
+		Self::join_moment_offsets(offsets)
 	}
 
 	pub fn len(&self) -> usize {
@@ -29,24 +34,27 @@ impl<'a> Sheet<'a> {
 		self.0.is_empty()
 	}
 
-	fn join_offsets(offsets: &[Offsets<'a>]) -> Self {
-		let mut moments = Vec::new();
-		let total_frames = offsets.iter().map(|o| o.len()).max().unwrap();
+	fn join_moment_offsets(mut offsets: Vec<Offsets<'a>>) -> Self {
+		let cap = offsets.iter().map(|o| o.len()).max().unwrap();
+		let mut moments = Vec::with_capacity(cap);
 		let mut none_counter = 0_u32;
-		for i in 0..total_frames {
-			let mut moment = Vec::new();
-			for track in offsets {
-				if let Some(Some(event)) = track.get(i) {
-					moment.push(*event);
+
+		for i in 0..cap {
+			let mut merged_moments = Vec::new();
+			for track in &mut offsets {
+				if i < track.len() {
+					if let Some(moment) = mem::take(&mut track[i]) {
+						merged_moments.extend(moment);
+					}
 				}
 			}
 
-			if moment.is_empty() {
+			if merged_moments.is_empty() {
 				none_counter += 1;
 			} else {
 				moments.push(Moment {
 					delta: none_counter,
-					events: moment,
+					events: merged_moments,
 				});
 				none_counter = 0;
 			}
@@ -56,12 +64,27 @@ impl<'a> Sheet<'a> {
 	}
 }
 
-fn map_offsets(events: Vec<TrackEvent<'_>>) -> Offsets {
+fn map_moments<'a>(events: &[TrackEvent<'a>]) -> Offsets<'a> {
 	let mut map = Vec::new();
-	for event in events {
-		map.extend((0..u32::from(event.delta)).map(|_| None));
+	let mut i = 0_usize;
+	while i < events.len() {
+		let event = events[i];
+		i += 1;
+		let mut moment = vec![event.kind];
+		map.extend((0..(u32::from(event.delta))).map(|_| None));
 
-		map.push(Some(event.kind));
+		if i >= events.len() {
+			map.push(Some(moment));
+			break;
+		}
+
+		moment.extend(events[i..].iter().take_while(|e| e.delta == 0).map(|e| {
+			i += 1;
+			e.kind
+		}));
+
+		map.push(Some(moment))
 	}
+
 	map
 }

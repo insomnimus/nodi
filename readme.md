@@ -17,7 +17,7 @@ cargo install --path . --locked
 
 # Command Usage
 
-``òutput
+```òutput
 plmidi 0.1.0
 
 Play MIDI files.

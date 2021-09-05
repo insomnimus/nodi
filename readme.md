@@ -18,12 +18,14 @@ cargo install --path . --locked
 # Command Usage
 
 ```òutput
-plmidi 0.1.0
+plmidi 0.1.2
+
+Taylan G├╢kkaya <insomnimus.dev@gmail.com>
 
 Play MIDI files.
 
 USAGE:
-    plmidi <file> [SUBCOMMAND]
+    plmidi.exe [OPTIONS] [file]
 
 ARGS:
     <file>    A MIDI file (.mid) to be played.
@@ -32,11 +34,8 @@ OPTIONS:
     -d, --device <device>    The index of the MIDI device that will be used for synthesis. [default:
                              0]
     -h, --help               Print help information
+    -l, --list               List available MIDI output devices.
     -V, --version            Print version information
-
-SUBCOMMANDS:
-    help    Print this message or the help of the given subcommand(s)
-    list    Show available MIDI devices. [aliases: ls]
 ```
 
 # TODO

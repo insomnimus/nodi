@@ -52,7 +52,7 @@ fn get_midi(n: usize) -> Result<MidiOutputConnection, Box<dyn Error>> {
 	}
 	if n >= out_ports.len() {
 		return Err(format!(
-			"only {} MIDI devices detected; run `plmidi list` to see them",
+			"only {} MIDI devices detected; run with --list  to see them",
 			out_ports.len()
 		)
 		.into());
@@ -65,11 +65,9 @@ fn get_midi(n: usize) -> Result<MidiOutputConnection, Box<dyn Error>> {
 
 fn run() -> Result<(), Box<dyn Error>> {
 	let m = app::new().get_matches();
-	match m.subcommand_name() {
-		None => (),
-		Some("list") => return list_devices(),
-		Some(unknown) => panic!("unhandled subcommand case: {:?}", unknown),
-	};
+	if m.is_present("list") {
+		return list_devices();
+	}
 
 	let n_device = m.value_of("device").unwrap().parse::<usize>().unwrap();
 	let file_name = m.value_of("file").unwrap();

@@ -12,15 +12,10 @@ pub fn new() -> App<'static> {
 		.version(crate_version!())
 		.author(crate_authors!())
 		.setting(AppSettings::UnifiedHelpMessage)
-		.setting(AppSettings::DisableVersionForSubcommands)
-		.subcommand(
-			App::new("list")
-				.visible_alias("ls")
-				.about("Show available MIDI devices."),
-		);
+		.setting(AppSettings::ArgRequiredElseHelp);
 
 	let file = Arg::new("file")
-		.required(true)
+		.required_unless_present("list")
 		.about("A MIDI file (.mid) to be played.");
 
 	let device = Arg::new("device")
@@ -35,5 +30,10 @@ pub fn new() -> App<'static> {
 				.map_err(|_| String::from("the value must be a number greater than or equal to 0"))
 		});
 
-	app.arg(device).arg(file)
+	let list = Arg::new("list")
+		.short('l')
+		.long("list")
+		.about("List available MIDI output devices.");
+
+	app.arg(device).arg(list).arg(file)
 }

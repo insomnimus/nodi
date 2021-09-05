@@ -1,7 +1,10 @@
 use std::{
+	convert::TryFrom,
 	thread,
 	time::Duration,
 };
+
+use midly::Timing;
 
 pub trait Timer {
 	fn tick_len_micros(&self) -> f64;
@@ -16,6 +19,7 @@ pub trait Timer {
 	}
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ticker {
 	ticks_per_beat: u16,
 	micros_per_tick: f64,
@@ -52,4 +56,15 @@ impl Timer for f64 {
 	}
 
 	fn change_tempo(&mut self, _: u32) {}
+}
+
+impl TryFrom<Timing> for Ticker {
+	type Error = Box<dyn std::error::Error>;
+
+	fn try_from(t: Timing) -> Result<Self, Self::Error> {
+		match t {
+			Timing::Metrical(n) => Ok(Self::new(u16::from(n))),
+			_ => Err("unsupported time format".into()),
+		}
+	}
 }

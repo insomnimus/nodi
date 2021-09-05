@@ -5,7 +5,7 @@ use midly::{
 	TrackEventKind,
 };
 
-pub type Tracks<'a> = Vec<Vec<TrackEvent<'a>>>;
+pub type Tracks<'a> = [Vec<TrackEvent<'a>>];
 type Offsets<'a> = Vec<Vec<TrackEventKind<'a>>>;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -14,16 +14,26 @@ pub(crate) struct Moment<'a> {
 	pub(crate) events: Vec<TrackEventKind<'a>>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct Sheet<'a>(pub(crate) Vec<Moment<'a>>);
 
 impl<'a> Sheet<'a> {
-	pub fn parallel(tracks: Tracks<'a>) -> Self {
-		let offsets = tracks
-			.into_iter()
-			.map(|t| map_moments(&t))
-			.collect::<Vec<_>>();
-		Self::join_moment_offsets(offsets)
+	pub fn parallel(tracks: &Tracks<'a>) -> Self {
+		let offsets = tracks.iter().map(|t| map_moments(t)).collect::<Vec<_>>();
+		Self::merge_moments(offsets)
+	}
+
+	pub fn sequential(tracks: &Tracks<'a>) -> Self {
+		let mut s = Self::default();
+		for t in tracks.iter().map(|t| map_moments(t)) {
+			let t = Self::merge_moments(vec![t]);
+			s.append(t);
+		}
+		s
+	}
+
+	pub fn append(&mut self, other: Self) {
+		self.0.extend(other.0);
 	}
 
 	pub fn len(&self) -> usize {
@@ -34,7 +44,7 @@ impl<'a> Sheet<'a> {
 		self.0.is_empty()
 	}
 
-	fn join_moment_offsets(mut offsets: Vec<Offsets<'a>>) -> Self {
+	fn merge_moments(mut offsets: Vec<Offsets<'a>>) -> Self {
 		let cap = offsets.iter().map(|o| o.len()).max().unwrap();
 		let mut moments = Vec::with_capacity(cap);
 		let mut empty_counter = 0_u32;

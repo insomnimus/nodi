@@ -82,7 +82,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 	};
 
 	let timer = Ticker::new(ticks_per_beat);
-	let sheet = Sheet::parallel(tracks);
+	let sheet = Sheet::parallel(&tracks);
 	let mut player = Player::new(out, timer);
 	player.play_sheet(&sheet);
 	Ok(())

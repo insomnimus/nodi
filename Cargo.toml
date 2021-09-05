@@ -2,10 +2,11 @@
 name = "plmidi"
 version = "0.1.0"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
+license = "MIT"
 
 [dependencies]
+clap = "3.0.0-beta.4"
 log = "0.4.14"
 midir = "0.7.0"
 midly = "0.5.2"

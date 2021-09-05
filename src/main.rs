@@ -1,3 +1,11 @@
+mod app;
+
+use std::{
+	error::Error,
+	fs,
+	process,
+};
+
 use midir::{
 	MidiOutput,
 	MidiOutputConnection,
@@ -12,28 +20,69 @@ use plmidi::{
 	Ticker,
 };
 
-type Error = Box<dyn std::error::Error>;
-
-static DATA: &[u8] = include_bytes!("in_flames.mid");
-
-fn get_midi() -> Result<MidiOutputConnection, Error> {
-	let midi_out = MidiOutput::new("kb-drums output")?;
+fn list_devices() -> Result<(), Box<dyn Error>> {
+	let midi_out = MidiOutput::new("plmidi")?;
 
 	let out_ports = midi_out.ports();
-	let out_port = &out_ports[0];
+
+	if out_ports.is_empty() {
+		println!("No active MIDI output device detected.");
+	} else {
+		for (i, p) in out_ports.iter().enumerate() {
+			println!(
+				"#{}: {}",
+				i,
+				midi_out
+					.port_name(p)
+					.as_deref()
+					.unwrap_or("<no device name>")
+			);
+		}
+	}
+
+	Ok(())
+}
+
+fn get_midi(n: usize) -> Result<MidiOutputConnection, Box<dyn Error>> {
+	let midi_out = MidiOutput::new("plmidi")?;
+
+	let out_ports = midi_out.ports();
+	if out_ports.is_empty() {
+		return Err("no MIDI output device detected".into());
+	}
+	if n >= out_ports.len() {
+		return Err(format!(
+			"only {} MIDI devices detected; run `plmidi list` to see them",
+			out_ports.len()
+		)
+		.into());
+	}
+
+	let out_port = &out_ports[n];
 	let out = midi_out.connect(out_port, "cello-tabs")?;
 	Ok(out)
 }
 
-fn play_track() -> Result<(), Error> {
-	let Smf { header, tracks } = Smf::parse(DATA)?;
+fn run() -> Result<(), Box<dyn Error>> {
+	let m = app::new().get_matches();
+	match m.subcommand_name() {
+		None => (),
+		Some("list") => return list_devices(),
+		Some(unknown) => panic!("unhandled subcommand case: {:?}", unknown),
+	};
 
+	let n_device = m.value_of("device").unwrap().parse::<usize>().unwrap();
+	let file_name = m.value_of("file").unwrap();
+
+	let out = get_midi(n_device)?;
+	let data = fs::read(file_name)?;
+
+	let Smf { header, tracks } = Smf::parse(&data)?;
 	let ticks_per_beat = match header.timing {
 		Timing::Metrical(n) => u16::from(n),
 		_ => return Err("unsupported time format".into()),
 	};
 
-	let out = get_midi()?;
 	let timer = Ticker::new(ticks_per_beat);
 	let sheet = Sheet::parallel(tracks);
 	let mut player = Player::new(out, timer);
@@ -41,6 +90,9 @@ fn play_track() -> Result<(), Error> {
 	Ok(())
 }
 
-fn main() -> Result<(), Error> {
-	play_track()
+fn main() {
+	if let Err(e) = run() {
+		eprintln!("error: {}", e);
+		process::exit(2);
+	}
 }

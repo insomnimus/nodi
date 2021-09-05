@@ -23,6 +23,7 @@ pub trait Timer {
 pub struct Ticker {
 	ticks_per_beat: u16,
 	micros_per_tick: f64,
+	pub speed: f32,
 }
 
 impl Ticker {
@@ -30,6 +31,7 @@ impl Ticker {
 		Self {
 			ticks_per_beat,
 			micros_per_tick: 0.0,
+			speed: 1.0,
 		}
 	}
 

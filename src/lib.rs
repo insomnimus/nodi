@@ -1,3 +1,4 @@
+pub mod event;
 mod player;
 mod sheet;
 mod timer;

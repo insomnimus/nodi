@@ -1,11 +1,11 @@
 use log::error;
 use midir::MidiOutputConnection;
-use midly::{
-	MetaMessage,
-	TrackEventKind,
-};
 
 use crate::{
+	event::{
+		Event,
+		Moment,
+	},
 	Sheet,
 	Timer,
 };
@@ -25,24 +25,29 @@ impl<T: Timer> Player<T> {
 	}
 
 	pub fn play_sheet(&mut self, sheet: &Sheet) {
+		let mut buf = Vec::with_capacity(6);
+		let mut empty_counter = 0_u32;
 		for moment in &sheet.0 {
-			self.timer.sleep(moment.delta);
-			for event in &moment.events {
-				match event {
-					TrackEventKind::Meta(MetaMessage::Tempo(val)) => {
-						self.timer.change_tempo(u32::from(*val))
-					}
-					_ => {
-						if let Some(msg) = event.as_live_event() {
-							let mut buf = Vec::new();
-							let _ = msg.write_std(&mut buf);
-							if let Err(e) = self.con.send(&buf) {
-								error!("failed to send a midi message: {:?}", e);
+			match moment {
+				Moment::Empty => empty_counter += 1,
+				Moment::Events(events) => {
+					self.timer.sleep(empty_counter);
+					empty_counter = 0;
+					for event in events {
+						match event {
+							Event::Tempo(val) => self.timer.change_tempo(*val),
+							Event::Midi(msg) => {
+								buf.clear();
+								let _ = msg.write(&mut buf);
+								if let Err(e) = self.con.send(&buf) {
+									error!("failed to send a midi message: {:?}", e);
+								}
 							}
-						}
+							_ => (),
+						};
 					}
 				}
-			}
+			};
 		}
 	}
 }

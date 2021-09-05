@@ -11,7 +11,6 @@ pub fn new() -> App<'static> {
 		.about("Play MIDI files.")
 		.version(crate_version!())
 		.author(crate_authors!())
-		.setting(AppSettings::ArgRequiredElseHelp)
 		.setting(AppSettings::UnifiedHelpMessage)
 		.setting(AppSettings::DisableVersionForSubcommands)
 		.subcommand(

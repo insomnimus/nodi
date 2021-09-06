@@ -1,12 +1,14 @@
 [package]
 name = "nodi"
 description = "A library for playback and abstraction of MIDI files."
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 license = "MIT"
 authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
 categories = [ "multimedia::audio", "multimedia::encoding" ]
 keywords = [ "midi", "audio", "music" ]
+repository = "https://github.com/insomnimus/nodi"
+readme = "readme.md"
 
 [dependencies]
 log = "0.4.14"

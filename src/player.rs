@@ -10,20 +10,29 @@ use crate::{
 	Timer,
 };
 
+/// A type that can play [Sheet]s.
 pub struct Player<T: Timer> {
+	/// An initialized MIDI output connection.
 	pub con: MidiOutputConnection,
 	timer: T,
 }
 
 impl<T: Timer> Player<T> {
+	/// Creates a new [Player] with the given [Timer] and
+	/// [MidiOutputConnection].
 	pub fn new(con: MidiOutputConnection, timer: T) -> Self {
 		Self { con, timer }
 	}
 
+	/// Changes `self.timer`.
 	pub fn set_timer(&mut self, timer: T) {
 		self.timer = timer;
 	}
 
+	/// Plays the given [Sheet].
+	///
+	/// # Remarks
+	/// The tempo change events are handled by `self.timer`.
 	pub fn play_sheet(&mut self, sheet: &Sheet) {
 		let mut buf = Vec::with_capacity(6);
 		let mut empty_counter = 0_u32;

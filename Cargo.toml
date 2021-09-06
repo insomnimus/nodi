@@ -1,5 +1,6 @@
 [package]
 name = "nodi"
+description = "A library for playback and abstraction of MIDI files."
 version = "0.1.0"
 edition = "2018"
 license = "MIT"

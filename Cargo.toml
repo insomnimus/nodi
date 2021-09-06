@@ -1,12 +1,13 @@
 [package]
-name = "plmidi"
-version = "0.3.0"
+name = "nodi"
+version = "0.1.0"
 edition = "2018"
-authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
 license = "MIT"
+authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
+categories = [ "multimedia::audio", "multimedia::encoding" ]
+keywords = [ "midi", "audio", "music" ]
 
 [dependencies]
-clap = "3.0.0-beta.4"
 log = "0.4.14"
 midir = "0.7.0"
 midly = "0.5.2"

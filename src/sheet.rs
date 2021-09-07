@@ -1,68 +1,14 @@
-use std::{
-	convert::TryFrom,
-	ops::{
-		Index,
-		IndexMut,
-		Range,
-	},
-};
-
 use midly::TrackEvent;
 
-use crate::event::{
-	Event,
-	Moment,
-};
+use crate::event::Moment;
+
+mod impls;
 
 /// Holds every moment in a MIDI track, each moment representing a MIDI tick.
 ///
 /// This type is used for time-mapping a MIDI track.
 #[derive(Default, Clone, Debug, PartialEq)]
 pub struct Sheet(pub(crate) Vec<Moment>);
-
-impl Index<usize> for Sheet {
-	type Output = Moment;
-
-	fn index(&self, n: usize) -> &Self::Output {
-		&self.0[n]
-	}
-}
-
-impl IndexMut<usize> for Sheet {
-	fn index_mut(&mut self, n: usize) -> &mut Self::Output {
-		&mut self.0[n]
-	}
-}
-
-impl Index<Range<usize>> for Sheet {
-	type Output = [Moment];
-
-	fn index(&self, r: Range<usize>) -> &Self::Output {
-		&self.0[r]
-	}
-}
-
-impl<'a> From<&[TrackEvent<'a>]> for Sheet {
-	fn from(events: &[TrackEvent<'_>]) -> Self {
-		let total_frames = events
-			.iter()
-			.map(|e| u32::from(e.delta) as usize)
-			.sum::<usize>()
-			+ 1;
-		let mut buf = vec![Moment::Empty; total_frames];
-
-		let mut cur_pos = 0_usize;
-
-		for event in events {
-			cur_pos += u32::from(event.delta) as usize;
-			if let Ok(e) = Event::try_from(event.kind) {
-				buf[cur_pos].push(e);
-			}
-		}
-
-		Self(buf)
-	}
-}
 
 impl Sheet {
 	/// Creates a [Sheet] from a slice of [TrackEvent]s.

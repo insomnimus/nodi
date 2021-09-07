@@ -1,5 +1,9 @@
 use log::error;
-use midir::MidiOutputConnection;
+#[cfg(any(feature = "midir", doc))]
+use midir::{
+	self,
+	MidiOutputConnection,
+};
 
 use crate::{
 	event::{
@@ -62,7 +66,8 @@ impl<T: Timer, C: Connection> Player<T, C> {
 
 /// Any type that can play sound, given a [MidiEvent].
 ///
-/// This trait is implemented for [MidiOutputConnection].
+/// This trait is implemented for [midir::MidiOutputConnection], if the `midir`
+/// feature is set.
 pub trait Connection {
 	/// Any error that may arise while playing a MIDI message.
 	type Error: std::error::Error;
@@ -71,6 +76,7 @@ pub trait Connection {
 	fn play(&mut self, msg: &MidiEvent) -> Result<(), Self::Error>;
 }
 
+#[cfg(any(feature = "midir", doc))]
 impl Connection for MidiOutputConnection {
 	type Error = midir::SendError;
 

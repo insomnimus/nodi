@@ -2,8 +2,8 @@
 
 Nodi provides types and functions for abstracting MIDI files.
  
-This crate works alongside with the [midly][] and [midir][] crates.
-
+This crate works alongside with the [midly][] and [midir][] crates. 
+However you can implement your own MIDI player, instead of relying on [midir][].
 
 # Features
 
@@ -14,6 +14,11 @@ This crate works alongside with the [midly][] and [midir][] crates.
 # Examples
  
  Please check out the source code of [plmidi][] for an implementation.
+
+# Crate Features
+No feature is enabled by default.
+
+-  `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly

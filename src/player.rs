@@ -4,6 +4,7 @@ use midir::MidiOutputConnection;
 use crate::{
 	event::{
 		Event,
+		MidiEvent,
 		Moment,
 	},
 	Sheet,
@@ -11,16 +12,16 @@ use crate::{
 };
 
 /// A type that can play [Sheet]s.
-pub struct Player<T: Timer> {
-	/// An initialized MIDI output connection.
-	pub con: MidiOutputConnection,
+pub struct Player<T: Timer, C: Connection> {
+	/// An active midi connection.
+	pub con: C,
 	timer: T,
 }
 
-impl<T: Timer> Player<T> {
+impl<T: Timer, C: Connection> Player<T, C> {
 	/// Creates a new [Player] with the given [Timer] and
-	/// [MidiOutputConnection].
-	pub fn new(con: MidiOutputConnection, timer: T) -> Self {
+	/// [Connection].
+	pub fn new(con: C, timer: T) -> Self {
 		Self { con, timer }
 	}
 
@@ -32,9 +33,9 @@ impl<T: Timer> Player<T> {
 	/// Plays the given [Sheet].
 	///
 	/// # Remarks
-	/// The tempo change events are handled by `self.timer`.
+	/// The tempo change events are handled by `self.timer` and playing sound by
+	/// `self.con`
 	pub fn play_sheet(&mut self, sheet: &Sheet) {
-		let mut buf = Vec::with_capacity(6);
 		let mut empty_counter = 0_u32;
 		for moment in &sheet.0 {
 			match moment {
@@ -46,9 +47,7 @@ impl<T: Timer> Player<T> {
 						match event {
 							Event::Tempo(val) => self.timer.change_tempo(*val),
 							Event::Midi(msg) => {
-								buf.clear();
-								let _ = msg.write(&mut buf);
-								if let Err(e) = self.con.send(&buf) {
+								if let Err(e) = self.con.play(msg) {
 									error!("failed to send a midi message: {:?}", e);
 								}
 							}
@@ -58,5 +57,26 @@ impl<T: Timer> Player<T> {
 				}
 			};
 		}
+	}
+}
+
+/// Any type that can play sound, given a [MidiEvent].
+///
+/// This trait is implemented for [MidiOutputConnection].
+pub trait Connection {
+	/// Any error that may arise while playing a MIDI message.
+	type Error: std::error::Error;
+
+	/// Given a [MidiEvent], plays the message.
+	fn play(&mut self, msg: &MidiEvent) -> Result<(), Self::Error>;
+}
+
+impl Connection for MidiOutputConnection {
+	type Error = midir::SendError;
+
+	fn play(&mut self, msg: &MidiEvent) -> Result<(), Self::Error> {
+		let mut buf = Vec::with_capacity(4);
+		let _ = msg.write(&mut buf);
+		self.send(&buf)
 	}
 }

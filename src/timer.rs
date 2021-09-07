@@ -23,7 +23,7 @@ pub trait Timer {
 		let t = self.tick_len_micros() * n_ticks as f64;
 
 		if t > 0.0 {
-			thread::sleep(Duration::from_micros(t as u64));
+			thread::sleep(Duration::from_nanos((t * 1000.0) as u64));
 		}
 	}
 }
@@ -69,6 +69,13 @@ impl Timer for Ticker {
 
 	fn change_tempo(&mut self, tempo: u32) {
 		self.micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
+	}
+
+	fn sleep(&self, n_ticks: u32) {
+		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
+		if t > 0.0 {
+			thread::sleep(Duration::from_nanos((t * 1000.0) as u64));
+		}
 	}
 }
 

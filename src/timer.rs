@@ -23,12 +23,12 @@ pub trait Timer {
 		let t = self.tick_len_micros() * n_ticks as f64;
 
 		if t > 0.0 {
-			thread::sleep(Duration::from_nanos((t * 1000.0) as u64));
+			thread::sleep(Duration::from_micros(t as u64));
 		}
 	}
 }
 
-/// Implements a metronomical [Timer].
+/// Implements a Metronomic [Timer].
 ///
 /// # Remarks
 /// Use this when the MIDI file header specifies the time format as being
@@ -38,6 +38,8 @@ pub struct Ticker {
 	ticks_per_beat: u16,
 	micros_per_tick: f64,
 	/// Speed modifier, a value of `1.0` is the default and affects nothing.
+	///
+	/// Important: Do not set to 0.0, this value is used as a denominator.
 	pub speed: f32,
 }
 
@@ -74,7 +76,7 @@ impl Timer for Ticker {
 	fn sleep(&self, n_ticks: u32) {
 		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
 		if t > 0.0 {
-			thread::sleep(Duration::from_nanos((t * 1000.0) as u64));
+			thread::sleep(Duration::from_micros(t as u64));
 		}
 	}
 }

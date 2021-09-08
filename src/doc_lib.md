@@ -14,7 +14,10 @@ However you can implement your own [Connection], instead of using [midir][].
 
 # Examples
 
-Please check out the source code of [plmidi][] for an implementation.
+Check out `/examples/play_midi.rs` for a basic midi player.
+
+For a little more complicated example please check out the source code of [plmidi][] for an implementation.
+
 
 # Crate Features
 No feature is enabled by default.

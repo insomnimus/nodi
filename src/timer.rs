@@ -48,7 +48,7 @@ impl Ticker {
 	/// The tempo will be infinitely rapid, meaning no sleeps will happen.
 	/// However this is rarely an issue since a tempo change message will set
 	/// it, and this usually happens before any non-0 offset event.
-	pub fn new(ticks_per_beat: u16) -> Self {
+	pub const fn new(ticks_per_beat: u16) -> Self {
 		Self {
 			ticks_per_beat,
 			micros_per_tick: 0.0,

@@ -5,8 +5,8 @@ use std::{
 		Index,
 		IndexMut,
 		Range,
+		RangeFull,
 	},
-	slice::Iter,
 };
 
 use midly::TrackEvent;
@@ -16,13 +16,6 @@ use crate::{
 	Moment,
 	Sheet,
 };
-
-impl Sheet {
-	/// Returns an iterator over every moment in `self`.
-	pub fn iter(&self) -> Iter<'_, Moment> {
-		self.0.iter()
-	}
-}
 
 impl Extend<Moment> for Sheet {
 	fn extend<T: IntoIterator<Item = Moment>>(&mut self, moments: T) {
@@ -80,5 +73,13 @@ impl<'a> From<&[TrackEvent<'a>]> for Sheet {
 		}
 
 		Self(buf)
+	}
+}
+
+impl Index<RangeFull> for Sheet {
+	type Output = [Moment];
+
+	fn index(&self, r: RangeFull) -> &Self::Output {
+		&self.0[r]
 	}
 }

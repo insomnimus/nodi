@@ -4,9 +4,7 @@ use crate::event::Moment;
 
 mod impls;
 
-/// Holds every moment in a MIDI track, each moment representing a MIDI tick.
-///
-/// This type is used for time-mapping a MIDI track.
+#[doc = include_str!("doc_sheet.md")]
 #[derive(Default, Clone, Debug, PartialEq)]
 pub struct Sheet(pub(crate) Vec<Moment>);
 
@@ -70,11 +68,17 @@ impl Sheet {
 	}
 
 	/// Returns how many MIDI ticks (or [Moment]s) this [Sheet] has.
+	///
+	/// Note that multiplying this value with the length of a tick may not
+	/// always give you the correct total duration. The reason for this is a
+	/// MIDI file can change tempo mid-track, however it is still trivial to
+	/// calculate the duration since every tempo-change event will be contained
+	/// in `self`.
 	pub fn len(&self) -> usize {
 		self.0.len()
 	}
 
-	/// Returns `true` if `Self::len() == 0`.
+	/// Returns `Self::len() == 0`.
 	pub fn is_empty(&self) -> bool {
 		self.0.is_empty()
 	}
@@ -83,7 +87,7 @@ impl Sheet {
 	///
 	/// # Remarks
 	/// This method will join two tracks end to end. If you want to merge them
-	/// instead, see [Sheet::merge_with].
+	/// instead, see [merge_with](Sheet::merge_with).
 	pub fn append(&mut self, other: Self) {
 		self.0.extend(other.0);
 	}
@@ -106,5 +110,10 @@ impl Sheet {
 				}
 			}
 		}
+	}
+
+	/// Returns an iterator over every moment in `self`.
+	pub fn iter(&self) -> std::slice::Iter<'_, Moment> {
+		self.0.iter()
 	}
 }

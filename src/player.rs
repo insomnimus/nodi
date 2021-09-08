@@ -34,14 +34,14 @@ impl<T: Timer, C: Connection> Player<T, C> {
 		self.timer = timer;
 	}
 
-	/// Plays the given [Sheet].
+	/// Plays the given [Moment] slice.
 	///
 	/// # Remarks
 	/// The tempo change events are handled by `self.timer` and playing sound by
 	/// `self.con`
-	pub fn play_sheet(&mut self, sheet: &Sheet) {
+	pub fn play_moments(&mut self, sheet: &[Moment]) {
 		let mut empty_counter = 0_u32;
-		for moment in &sheet.0 {
+		for moment in sheet {
 			match moment {
 				Moment::Empty => empty_counter += 1,
 				Moment::Events(events) => {
@@ -61,6 +61,14 @@ impl<T: Timer, C: Connection> Player<T, C> {
 				}
 			};
 		}
+	}
+
+	/// Plays the given [Sheet].
+	///
+	/// Equivalent to `.play_moments(&sheet[..])`.
+	/// See also [Player::play_moments].
+	pub fn play_sheet(&mut self, sheet: &Sheet) {
+		self.play_moments(&sheet[..])
 	}
 }
 

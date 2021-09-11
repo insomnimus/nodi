@@ -37,7 +37,7 @@ pub trait Timer {
                 Moment::Empty => empty_counter += 1,
                 Moment::Events(events) => {
                     total += Duration::from_micros(
-                        (empty_counter as f64 + self.tick_len_micros()) as u64,
+                        (empty_counter as f64 * self.tick_len_micros()) as u64,
                     );
                     empty_counter = 0;
                     for event in events {

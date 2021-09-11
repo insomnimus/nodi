@@ -6,8 +6,11 @@ use crate::{Event, Moment};
 
 /// Used for timing MIDI playback.
 pub trait Timer {
-    /// Must return how many microseconds should a MIDI tick last.
-    fn tick_len_micros(&self) -> f64;
+    /// Returns the [Duration] that should be slept for.
+    ///
+    /// # Arguments
+    /// - `n_ticks`: Number of MIDI ticks to sleep for.
+    fn sleep_duration(&self, n_ticks: u32) -> Duration;
 
     /// Changes the timers tempo.
     ///
@@ -16,12 +19,17 @@ pub trait Timer {
     fn change_tempo(&mut self, tempo: u32);
 
     /// Sleeps given number of ticks.
-    /// The provided implementation will call [thread::sleep].
+    /// The provided implementation will call [thread::sleep] with the argument
+    /// being `self.sleep_duration(n_ticks)`.
+    ///
+    /// # Notes
+    /// The provided implementation will not sleep if
+    /// `self.sleep_duration(n_ticks).is_zero()`.
     fn sleep(&self, n_ticks: u32) {
-        let t = self.tick_len_micros() * n_ticks as f64;
+        let t = self.sleep_duration(n_ticks);
 
-        if t > 0.0 {
-            thread::sleep(Duration::from_micros(t as u64));
+        if !t.is_zero() {
+            thread::sleep(t);
         }
     }
 
@@ -31,14 +39,12 @@ pub trait Timer {
     /// The default implementation modifies `self` if a tempo event is found.
     fn duration(&mut self, moments: &[Moment]) -> Duration {
         let mut total = Duration::default();
-        let mut empty_counter = 0;
+        let mut empty_counter = 0_u32;
         for moment in moments {
             match moment {
                 Moment::Empty => empty_counter += 1,
                 Moment::Events(events) => {
-                    total += Duration::from_micros(
-                        (empty_counter as f64 * self.tick_len_micros()) as u64,
-                    );
+                    total += self.sleep_duration(empty_counter);
                     empty_counter = 0;
                     for event in events {
                         if let Event::Tempo(val) = event {
@@ -89,18 +95,16 @@ impl Ticker {
 }
 
 impl Timer for Ticker {
-    fn tick_len_micros(&self) -> f64 {
-        self.micros_per_tick
-    }
-
     fn change_tempo(&mut self, tempo: u32) {
         self.micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
     }
 
-    fn sleep(&self, n_ticks: u32) {
+    fn sleep_duration(&self, n_ticks: u32) -> Duration {
         let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
         if t > 0.0 {
-            thread::sleep(Duration::from_micros(t as u64));
+            Duration::from_micros(t as u64)
+        } else {
+            Duration::default()
         }
     }
 }

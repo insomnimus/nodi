@@ -29,7 +29,7 @@ pub trait Timer {
     ///
     /// # Note
     /// The default implementation modifies `self` if a tempo event is found.
-    fn track_len(&mut self, moments: &[Moment]) -> Duration {
+    fn duration(&mut self, moments: &[Moment]) -> Duration {
         let mut total = Duration::default();
         let mut empty_counter = 0;
         for moment in moments {
@@ -103,14 +103,6 @@ impl Timer for Ticker {
             thread::sleep(Duration::from_micros(t as u64));
         }
     }
-}
-
-impl Timer for f64 {
-    fn tick_len_micros(&self) -> f64 {
-        *self
-    }
-
-    fn change_tempo(&mut self, _: u32) {}
 }
 
 impl TryFrom<Timing> for Ticker {

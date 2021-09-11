@@ -15,7 +15,7 @@ However you can implement your own MIDI player, instead of relying on [midir][].
 
 Check out `/examples/play_midi.rs` for a basic midi player.
 
-For a little more complicated example please check out the source code of [plmidi][] for an implementation.
+For a little more complicated example please check out the source code of [plmidi][].
 
 # Crate Features
 No feature is enabled by default.

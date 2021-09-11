@@ -1,4 +1,5 @@
-use std::{
+use core::{
+    borrow::Borrow,
     convert::TryFrom,
     iter::IntoIterator,
     ops::{Index, IndexMut, Range, RangeFull},
@@ -72,5 +73,11 @@ impl Index<RangeFull> for Sheet {
 
     fn index(&self, r: RangeFull) -> &Self::Output {
         &self.0[r]
+    }
+}
+
+impl Borrow<[Moment]> for Sheet {
+    fn borrow(&self) -> &[Moment] {
+        &self.0[..]
     }
 }

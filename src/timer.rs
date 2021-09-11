@@ -2,6 +2,8 @@ use std::{convert::TryFrom, thread, time::Duration};
 
 use midly::Timing;
 
+use crate::{Event, Moment};
+
 /// Used for timing MIDI playback.
 pub trait Timer {
     /// Must return how many microseconds should a MIDI tick last.
@@ -22,9 +24,35 @@ pub trait Timer {
             thread::sleep(Duration::from_micros(t as u64));
         }
     }
+
+    /// Calculates the length of a track or a slice of [Moment]s.
+    ///
+    /// # Note
+    /// The default implementation modifies `self` if a tempo event is found.
+    fn track_len(&mut self, moments: &[Moment]) -> Duration {
+        let mut total = Duration::default();
+        let mut empty_counter = 0;
+        for moment in moments {
+            match moment {
+                Moment::Empty => empty_counter += 1,
+                Moment::Events(events) => {
+                    total += Duration::from_micros(
+                        (empty_counter as f64 + self.tick_len_micros()) as u64,
+                    );
+                    empty_counter = 0;
+                    for event in events {
+                        if let Event::Tempo(val) = event {
+                            self.change_tempo(*val);
+                        }
+                    }
+                }
+            }
+        }
+        total
+    }
 }
 
-/// Implements a Metronomic [Timer].
+/// Implements a Metrical [Timer].
 ///
 /// # Remarks
 /// Use this when the MIDI file header specifies the time format as being

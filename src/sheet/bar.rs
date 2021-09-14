@@ -2,9 +2,10 @@ use std::collections::VecDeque;
 
 use crate::{Event, Moment, Sheet};
 
+#[derive(Eq, PartialEq)]
 struct TimeSignature {
     // Beats per bar.
-    nominator: u8,
+    numerator: u8,
     // Note of a beat. A negative power of 2.
     denominator: u8,
 }
@@ -13,7 +14,7 @@ impl TimeSignature {
     fn bar_32s(&self) -> f32 {
         let note_as_32s = 2_f32.powi(5_i32 - self.denominator as i32);
         // let note_as_32s = 32.0 / self.denominator as f32;
-        self.nominator as f32 * note_as_32s
+        self.numerator as f32 * note_as_32s
     }
 }
 
@@ -31,6 +32,27 @@ impl Iterator for Bars {
         if self.buf.is_empty() {
             return None;
         }
+        // Check if start of bar has time signature.
+        if let Some((time_sig, beat_32s)) = self.buf.front().and_then(|m| match &m {
+            Moment::Empty => None,
+            Moment::Events(events) => events
+                .iter()
+                .flat_map(|e| match e {
+                    Event::TimeSignature(numerator, denominator, _, beat_32s) => Some((
+                        TimeSignature {
+                            numerator: *numerator,
+                            denominator: *denominator,
+                        },
+                        beat_32s,
+                    )),
+                    _ => None,
+                })
+                .next(),
+        }) {
+            self.time_sig = time_sig;
+            self.beat_32s = *beat_32s;
+        }
+
         let len_32nd = self.tpb / self.beat_32s as f32;
         let chunk_len = (self.time_sig.bar_32s() * len_32nd as f32) as usize;
         let mut temp = Vec::with_capacity(chunk_len);
@@ -40,7 +62,7 @@ impl Iterator for Bars {
                 match &moment {
                     Moment::Empty => temp.push(moment),
                     Moment::Events(events) => {
-                        if let Some((&nominator, &denominator, &beat_32s)) = events
+                        if let Some((&numerator, &denominator, &beat_32s)) = events
                             .iter()
                             .flat_map(|e| match e {
                                 Event::TimeSignature(nom, denom, _, beat_32s) => {
@@ -50,13 +72,16 @@ impl Iterator for Bars {
                             })
                             .next()
                         {
-                            self.time_sig = TimeSignature {
-                                nominator,
+                            let ts = TimeSignature {
+                                numerator,
                                 denominator,
                             };
-                            self.beat_32s = beat_32s;
                             temp.push(moment);
-                            break;
+                            if ts != self.time_sig || beat_32s != self.beat_32s {
+                                self.beat_32s = beat_32s;
+                                self.time_sig = ts;
+                                break;
+                            }
                         } else {
                             temp.push(moment);
                         }
@@ -81,7 +106,7 @@ impl Sheet {
         Bars {
             tpb: ticks_per_beat as f32,
             time_sig: TimeSignature {
-                nominator: 4,
+                numerator: 4,
                 denominator: 4,
             },
             beat_32s: 24,

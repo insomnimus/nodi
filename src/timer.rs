@@ -35,7 +35,7 @@ pub trait Timer {
 
     /// Calculates the length of a track or a slice of [Moment]s.
     ///
-    /// # Note
+    /// # Notes
     /// The default implementation modifies `self` if a tempo event is found.
     fn duration(&mut self, moments: &[Moment]) -> Duration {
         let mut total = Duration::default();

@@ -2,6 +2,7 @@ use midly::TrackEvent;
 
 use crate::event::Moment;
 
+mod bar;
 mod impls;
 
 #[doc = include_str!("doc_sheet.md")]

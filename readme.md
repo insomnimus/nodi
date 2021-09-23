@@ -10,6 +10,7 @@ However you can implement your own MIDI player, instead of relying on [midir][].
 -	Time-map MIDI events.
 -	Join or merge multiple MIDI tracks.
 -	Play MIDI files.
+ -	Split a MIDI track into measures/bars.
  
 # Examples
 

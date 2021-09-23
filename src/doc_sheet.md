@@ -12,7 +12,7 @@ using `&sheet[..]` or directly calling [`.into_iter()`](Sheet::into_iter).
 
 # Examples
 
-```rust
+```ignore
 use std::fs;
 use midly::{Format, Smf};
 use nodi::Sheet;

@@ -3,7 +3,7 @@ use std::{convert::TryFrom, io};
 use midly::{live::LiveEvent, num::u4, MetaMessage, MidiMessage, TrackEventKind};
 
 /// Represents a single moment (tick) in a MIDI track.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Moment {
 	/// There are no MIDI events at this moment.
 	Empty,
@@ -36,7 +36,7 @@ impl Moment {
 }
 
 /// Represents a single MIDI event.
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Event {
 	/// Represents a tempo change message.
 	/// The wrapped `u32` represents microseconds per beat.
@@ -53,7 +53,8 @@ pub enum Event {
 }
 
 /// Represents a MIDI message.
-///
+/// An instance of this type can sometimes be converted from a [TrackEventKind]
+/// with the [TryFrom] trait.
 /// This type can be fed to a synthesizer.
 ///
 /// # Examples
@@ -64,7 +65,7 @@ pub enum Event {
 /// msg.write(&mut buf)?;
 /// // Now `bf` contains a valid MIDI message, send it to a MIDI api like `midir::MidiOutputConnection`.
 /// ```
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct MidiEvent {
 	/// The channel this event is to be sent to.
 	pub channel: u4,
@@ -98,7 +99,7 @@ impl<'a> TryFrom<TrackEventKind<'a>> for Event {
 				Self::TimeSignature(a, b, c, d)
 			}
 			TrackEventKind::Meta(MetaMessage::KeySignature(a, b)) => Self::KeySignature(a, b),
-			_ => return Err("not a valid Event"),
+			_ => return Err("not a valid event"),
 		})
 	}
 }

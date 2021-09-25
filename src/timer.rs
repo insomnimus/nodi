@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, thread, time::Duration};
+use std::{convert::TryFrom, fmt, thread, time::Duration};
 
 use midly::Timing;
 
@@ -58,6 +58,24 @@ pub trait Timer {
 	}
 }
 
+/// An error that might arise while converting [Timing] to a [Ticker] or
+/// [FixedTempo].
+pub struct TimeFormatError;
+
+impl std::error::Error for TimeFormatError {}
+
+impl fmt::Debug for TimeFormatError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.write_str("unsupported time format")
+	}
+}
+
+impl fmt::Display for TimeFormatError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.write_str("unsupported time format")
+	}
+}
+
 /// Implements a Metrical [Timer].
 ///
 /// # Remarks
@@ -110,7 +128,7 @@ impl Timer for Ticker {
 }
 
 impl TryFrom<Timing> for Ticker {
-	type Error = Box<dyn std::error::Error>;
+	type Error = TimeFormatError;
 
 	/// Tries to create a [Ticker] from the provided [Timing].
 	///
@@ -119,7 +137,52 @@ impl TryFrom<Timing> for Ticker {
 	fn try_from(t: Timing) -> Result<Self, Self::Error> {
 		match t {
 			Timing::Metrical(n) => Ok(Self::new(u16::from(n))),
-			_ => Err("unsupported time format".into()),
+			_ => Err(TimeFormatError),
 		}
+	}
+}
+
+/// A [Timer] with a fixed tempo.
+///
+/// The value wrapped corresponds to the length of a tick, in microseconds.
+///
+/// # Notes
+/// This type corresponds to [Timing::Timecode] and can be converted using
+/// [TryFrom::from]. Try to avoid using this timer because it's not tested (it's
+/// very rare to get [Timing::Timecode] in real life).
+pub struct FixedTempo(pub u64);
+
+impl TryFrom<Timing> for FixedTempo {
+	type Error = TimeFormatError;
+
+	fn try_from(t: Timing) -> Result<Self, Self::Error> {
+		if let Timing::Timecode(fps, frame) = t {
+			let micros = 1_000_000.0 / fps.as_f32() / frame as f32;
+			Ok(Self(micros as u64))
+		} else {
+			Err(TimeFormatError)
+		}
+	}
+}
+
+impl Timer for FixedTempo {
+	fn sleep_duration(&self, n_ticks: u32) -> Duration {
+		Duration::from_millis(self.0 * n_ticks as u64)
+	}
+
+	/// This function does nothing.
+	fn change_tempo(&mut self, _: u32) {}
+}
+
+/// Returns an appropriate [Timer] for the given [Timing].
+///
+/// # Notes
+/// You will rarely need this, most MIDI files use [Timing::Metrical]; use that
+/// with [Ticker].
+/// Because this function returns a trait object.
+pub fn timing_to_timer(t: Timing) -> Box<dyn Timer> {
+	match &t {
+		Timing::Metrical(..) => Box::new(Ticker::try_from(t).unwrap()),
+		Timing::Timecode(..) => Box::new(FixedTempo::try_from(t).unwrap()),
 	}
 }

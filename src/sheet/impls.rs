@@ -2,7 +2,7 @@ use core::{
 	borrow::Borrow,
 	convert::TryFrom,
 	iter::IntoIterator,
-	ops::{Index, IndexMut, Range, RangeFull},
+	ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeTo},
 };
 
 use midly::TrackEvent;
@@ -38,10 +38,50 @@ impl IndexMut<usize> for Sheet {
 	}
 }
 
+impl IndexMut<Range<usize>> for Sheet {
+	fn index_mut(&mut self, r: Range<usize>) -> &mut Self::Output {
+		&mut self.0[r]
+	}
+}
+
+impl IndexMut<RangeFrom<usize>> for Sheet {
+	fn index_mut(&mut self, r: RangeFrom<usize>) -> &mut Self::Output {
+		&mut self.0[r]
+	}
+}
+
+impl IndexMut<RangeTo<usize>> for Sheet {
+	fn index_mut(&mut self, r: RangeTo<usize>) -> &mut Self::Output {
+		&mut self.0[r]
+	}
+}
+
+impl IndexMut<RangeFull> for Sheet {
+	fn index_mut(&mut self, r: RangeFull) -> &mut Self::Output {
+		&mut self.0[r]
+	}
+}
+
 impl Index<Range<usize>> for Sheet {
 	type Output = [Moment];
 
 	fn index(&self, r: Range<usize>) -> &Self::Output {
+		&self.0[r]
+	}
+}
+
+impl Index<RangeFrom<usize>> for Sheet {
+	type Output = [Moment];
+
+	fn index(&self, r: RangeFrom<usize>) -> &Self::Output {
+		&self.0[r]
+	}
+}
+
+impl Index<RangeTo<usize>> for Sheet {
+	type Output = [Moment];
+
+	fn index(&self, r: RangeTo<usize>) -> &Self::Output {
 		&self.0[r]
 	}
 }

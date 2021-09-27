@@ -3,7 +3,7 @@ use midly::MidiMessage;
 use std::mem;
 
 impl Moment {
-	/// Transposes every note contained in this moment.
+	/// Transposes every note contained in this moment, returns `true` if anything has changed.
 	///
 	/// # Arguments
 	/// -  `shift`: Amount of half notes the notes will be transposed with.
@@ -13,7 +13,7 @@ impl Moment {
 	/// Only `NoteOn`, `NoteOff` and `Aftertouch` messages will be transposed.
 	/// The notes exceeding the MIDI treshold (0..=127) are dropped, meaning this function is lossy.
 	/// If after transposition, all the notes are dropped, `self` will be set to `Moment::Empty`.
-	pub fn transpose(&mut self, shift: i8, transpose_ch9: bool) {
+	pub fn transpose(&mut self, shift: i8, transpose_ch9: bool) -> bool {
 		use midly::num::u7;
 
 		let shift = shift as i32;
@@ -27,8 +27,10 @@ impl Moment {
 		};
 
 		match self {
-			Self::Empty => (),
+			Self::Empty => false,
+			_ if shift == 0 => false,
 			Self::Events(events) => {
+				let mut changed = false;
 				let buf = mem::take(events);
 				*events = buf
 					.into_iter()
@@ -36,15 +38,18 @@ impl Moment {
 						Event::Midi(m) if transpose_ch9 || m.channel != 9 => {
 							let channel = m.channel;
 							match m.message {
-								MidiMessage::NoteOn { key, vel } => {
-									tp(key).map(|k| MidiMessage::NoteOn { key: k, vel })
-								}
-								MidiMessage::NoteOff { key, vel } => {
-									tp(key).map(|k| MidiMessage::NoteOff { key: k, vel })
-								}
-								MidiMessage::Aftertouch { key, vel } => {
-									tp(key).map(|k| MidiMessage::Aftertouch { key: k, vel })
-								}
+								MidiMessage::NoteOn { key, vel } => tp(key).map(|k| {
+									changed = true;
+									MidiMessage::NoteOn { key: k, vel }
+								}),
+								MidiMessage::NoteOff { key, vel } => tp(key).map(|k| {
+									changed = true;
+									MidiMessage::NoteOff { key: k, vel }
+								}),
+								MidiMessage::Aftertouch { key, vel } => tp(key).map(|k| {
+									changed = true;
+									MidiMessage::Aftertouch { key: k, vel }
+								}),
 								other => Some(other),
 							}
 							.map(|m| {
@@ -57,9 +62,10 @@ impl Moment {
 						other => Some(other),
 					})
 					.collect();
-				if events.is_empty() {
+				if events.is_empty() && changed {
 					*self = Self::Empty;
 				}
+				changed
 			}
 		}
 	}

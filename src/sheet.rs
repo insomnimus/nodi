@@ -144,4 +144,13 @@ impl Sheet {
 	pub fn push(&mut self, m: Moment) {
 		self.0.push(m);
 	}
+
+	/// Transposes every note in this sheet.
+	///
+	/// Applies [Moment::transpose] on every item in `self`. see its documentation for more info.
+	pub fn transpose(&mut self, shift: i8, transpose_ch9: bool) {
+		for m in &mut self.0 {
+			m.transpose(shift, transpose_ch9);
+		}
+	}
 }

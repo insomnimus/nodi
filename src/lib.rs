@@ -1,5 +1,5 @@
-#![deny(broken_intra_doc_links)]
-#![warn(missing_docs, missing_crate_level_docs)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![warn(missing_docs, rustdoc::missing_crate_level_docs)]
 #![doc = include_str!("doc_lib.md")]
 
 mod event;

@@ -1,3 +1,5 @@
+mod transpose;
+
 use std::{convert::TryFrom, io};
 
 use midly::{live::LiveEvent, num::u4, MetaMessage, MidiMessage, TrackEventKind};

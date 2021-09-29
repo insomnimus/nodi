@@ -1,3 +1,5 @@
+![Build Status](https://github.com/insomnimus/nodi/actions/workflows/main.yml/badge.svg)
+
 # nodi
 Nodi provides types and functions for abstracting MIDI files.
  

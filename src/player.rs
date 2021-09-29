@@ -17,7 +17,7 @@ pub struct Player<T: Timer, C: Connection> {
 impl<T: Timer, C: Connection> Player<T, C> {
 	/// Creates a new [Player] with the given [Timer] and
 	/// [Connection].
-	pub fn new(con: C, timer: T) -> Self {
+	pub fn new(timer: T, con: C) -> Self {
 		Self { con, timer }
 	}
 

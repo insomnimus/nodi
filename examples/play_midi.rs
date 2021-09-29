@@ -67,7 +67,7 @@ impl Args {
 			Format::Parallel => Sheet::parallel(&tracks),
 		};
 
-		let mut player = Player::new(con, timer);
+		let mut player = Player::new(timer, con);
 
 		println!("starting playback");
 		player.play_sheet(&sheet);

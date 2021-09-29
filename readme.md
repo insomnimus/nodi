@@ -1,7 +1,10 @@
-![Build Status](https://github.com/insomnimus/nodi/actions/workflows/main.yml/badge.svg)
+# Nodi
 
-# nodi
-Nodi provides types and functions for abstracting MIDI files.
+[![Build Status](https://github.com/insomnimus/nodi/actions/workflows/main.yml/badge.svg)](https://github.com/insomnimus/nodi/actions)
+ [![crates.io](https://img.shields.io/crates/v/nodi.svg)](https://crates.io/crates/nodi)
+ [![docs.rs](https://docs.rs/nodi/badge.svg)](https://docs.rs/nodi/)
+
+Nodi provides types and functions for playback and abstraction of MIDI files.
  
 This crate works alongside with the [midly][] and [midir][] crates. 
 However you can implement your own MIDI player, instead of relying on [midir][].
@@ -15,7 +18,6 @@ However you can implement your own MIDI player, instead of relying on [midir][].
 -	Transpose a track.
 
 # Examples
-
 Check out `/examples/play_midi.rs` for a basic midi player.
 
 I started developping this crate because I needed the features it now offers.

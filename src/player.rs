@@ -28,7 +28,7 @@ impl<T: Timer, C: Connection> Player<T, C> {
 
 	/// Plays the given [Moment] slice.
 	///
-	/// # Remarks
+	/// # Notes
 	/// The tempo change events are handled by `self.timer` and playing sound by
 	/// `self.con`
 	pub fn play_moments(&mut self, sheet: &[Moment]) {

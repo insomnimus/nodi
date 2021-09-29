@@ -1,6 +1,6 @@
 use std::{convert::TryFrom, fmt, thread, time::Duration};
 
-use log::{debug, info};
+use log::{debug, info, trace};
 use midly::Timing;
 
 use crate::{Event, Moment};
@@ -26,6 +26,11 @@ pub trait Timer {
 	/// # Notes
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
+	///
+	/// Using the [log] crate, if the log level is set to `debug`,
+	/// the sleep duration will be logged before any sleep happens.
+	/// If the log level is set to `trace`, the times when the returned duration
+	/// is 0 (does not cause [thread::sleep]), will also be logged.
 	fn sleep(&self, n_ticks: u32) {
 		let t = self.sleep_duration(n_ticks);
 
@@ -33,7 +38,7 @@ pub trait Timer {
 			debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			thread::sleep(t);
 		} else {
-			debug!(target: "Timer", "timer returned 0 duration, not sleeping")
+			trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
 

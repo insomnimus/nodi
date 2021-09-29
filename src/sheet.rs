@@ -14,7 +14,7 @@ pub struct Sheet(pub(crate) Vec<Moment>);
 impl Sheet {
 	/// Creates a [Sheet] from a slice of [TrackEvent]s.
 	///
-	/// # Remarks
+	/// # Notes
 	/// Use this when the MIDI file header specifies the format to be 0, meaning
 	/// `single`.
 	pub fn single(events: &[TrackEvent<'_>]) -> Self {
@@ -23,7 +23,7 @@ impl Sheet {
 
 	/// Creates a [Sheet] from many tracks, merging all of them into one.
 	///
-	/// # Remarks
+	/// # Notes
 	/// Use this when a MIDI file header specifies the format to be of 1,
 	/// meaning parallel.
 	pub fn parallel(tracks: &[Vec<TrackEvent<'_>>]) -> Self {
@@ -43,7 +43,7 @@ impl Sheet {
 	/// Creates a [Sheet] from every track, appending them end to
 	/// end.
 	///
-	/// # Remarks
+	/// # Notes
 	/// Use this when a MIDI file header specifies the type as 2, meaning
 	/// `sequential`.
 	pub fn sequential(tracks: &[Vec<TrackEvent<'_>>]) -> Self {
@@ -102,7 +102,7 @@ impl Sheet {
 
 	/// Appends another [Sheet] to `self`, destroying the other.
 	///
-	/// # Remarks
+	/// # Notes
 	/// This method will join two tracks end to end. If you want to merge them
 	/// instead, see [merge_with](Sheet::merge_with).
 	pub fn append(&mut self, other: Self) {
@@ -111,7 +111,7 @@ impl Sheet {
 
 	/// Merges `self` with another [Sheet], destroying the other.
 	///
-	/// # Remarks
+	/// # Notes
 	/// This method will combine every moment in both [Sheet]s into one. If you
 	/// want to join them end to end instead, see [Sheet::append].
 	pub fn merge_with(&mut self, other: Self) {

@@ -1,5 +1,6 @@
 use std::{convert::TryFrom, fmt, thread, time::Duration};
 
+use log::{debug, info};
 use midly::Timing;
 
 use crate::{Event, Moment};
@@ -29,7 +30,10 @@ pub trait Timer {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
+			debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			thread::sleep(t);
+		} else {
+			debug!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
 
@@ -78,9 +82,11 @@ impl fmt::Display for TimeFormatError {
 
 /// Implements a Metrical [Timer].
 ///
-/// # Remarks
+/// # Notes
 /// Use this when the MIDI file header specifies the time format as being
 /// [Timing::Metrical], this is the case 99% of the time.
+///
+/// Set the log level to `info` (using the [log] crate) for logging the tempo change events.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ticker {
 	ticks_per_beat: u16,
@@ -114,7 +120,15 @@ impl Ticker {
 
 impl Timer for Ticker {
 	fn change_tempo(&mut self, tempo: u32) {
-		self.micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
+		let micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
+		info! {
+			target: "Ticker",
+			"tempo change: {} (microseconds per tick: {} -> {})",
+			tempo,
+			self.micros_per_tick,
+			micros_per_tick,
+		};
+		self.micros_per_tick = micros_per_tick;
 	}
 
 	fn sleep_duration(&self, n_ticks: u32) -> Duration {

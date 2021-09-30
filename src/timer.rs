@@ -192,16 +192,3 @@ impl Timer for FixedTempo {
 	/// This function does nothing.
 	fn change_tempo(&mut self, _: u32) {}
 }
-
-/// Returns an appropriate [Timer] for the given [Timing].
-///
-/// # Notes
-/// You will rarely need this, most MIDI files use [Timing::Metrical]; use that
-/// with [Ticker].
-/// Because this function returns a trait object.
-pub fn timing_to_timer(t: Timing) -> Box<dyn Timer> {
-	match &t {
-		Timing::Metrical(..) => Box::new(Ticker::try_from(t).unwrap()),
-		Timing::Timecode(..) => Box::new(FixedTempo::try_from(t).unwrap()),
-	}
-}

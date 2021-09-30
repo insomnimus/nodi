@@ -27,7 +27,7 @@ pub trait Timer {
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
 	///
-	/// If the `verbose-log` feature is set and the log level is set to `debug`,
+	/// With the provided implementation: If the `verbose-log` feature is enabled and the log level is set to `debug`,
 	/// the sleep duration will be logged before any sleep happens.
 	/// If the log level is set to `trace`, the times when the returned duration
 	/// is 0 (does not cause [thread::sleep]), will also be logged.
@@ -49,23 +49,21 @@ pub trait Timer {
 	/// # Notes
 	/// The default implementation modifies `self` if a tempo event is found.
 	fn duration(&mut self, moments: &[Moment]) -> Duration {
-		let mut total = Duration::default();
-		let mut empty_counter = 0_u32;
+		let mut counter = Duration::default();
 		for moment in moments {
+			counter += self.sleep_duration(1);
 			match moment {
-				Moment::Empty => empty_counter += 1,
-				Moment::Events(events) => {
-					total += self.sleep_duration(empty_counter);
-					empty_counter = 0;
+				Moment::Events(events) if !events.is_empty() => {
 					for event in events {
 						if let Event::Tempo(val) = event {
 							self.change_tempo(*val);
 						}
 					}
 				}
-			}
+				_ => (),
+			};
 		}
-		total
+		counter
 	}
 }
 

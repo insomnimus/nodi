@@ -13,17 +13,24 @@ However you can implement your own [Connection], instead of using [midir][].
 - Play the sheet using the player.
 
 # Examples
-
 Check out `/examples/play_midi.rs` for a basic midi player.
 
-For a little more complicated example please check out the source code of [plmidi][] for an implementation.
+I started developping this crate because I needed the features it now offers.
+Here are some real-world examples of nodi in action:
 
+-	[midnote][]: An accessible MIDI note viewer/ player.
+-	[plmidi][]: A MIDI player for the command line.
+
+# Debugging
+Nodi uses the [log] crate for the logging; you can use a compatible logger for consumption.
 
 # Crate Features
 No feature is enabled by default.
 
--  `midir`: Adds implementations of [Connection] for [midir::MidiOutputConnection].
+-  `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
+-  `verbose-log`: Enables more logging, not recommended unless you really want to see the Ticker tick.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly
 [plmidi]: https://github.com/insomnimus/plmidi
+[midnote]: https://github.com/insomnimus/midnote

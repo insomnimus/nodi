@@ -32,16 +32,17 @@ impl<T: Timer, C: Connection> Player<T, C> {
 	/// The tempo change events are handled by `self.timer` and playing sound by
 	/// `self.con`
 	pub fn play_moments(&mut self, sheet: &[Moment]) {
-		let mut empty_counter = 0_u32;
+		let mut counter = 0_u32;
+
 		for moment in sheet {
 			match moment {
-				Moment::Empty => empty_counter += 1,
-				Moment::Events(events) => {
-					self.timer.sleep(empty_counter);
-					empty_counter = 0;
+				Moment::Events(events) if !events.is_empty() => {
+					self.timer.sleep(counter);
+					counter = 0;
+					let mut new_tempo = 0;
 					for event in events {
 						match event {
-							Event::Tempo(val) => self.timer.change_tempo(*val),
+							Event::Tempo(val) => new_tempo = *val,
 							Event::Midi(msg) => {
 								if let Err(e) = self.con.play(msg) {
 									error!("failed to send a midi message: {:?}", e);
@@ -50,8 +51,13 @@ impl<T: Timer, C: Connection> Player<T, C> {
 							_ => (),
 						};
 					}
+					if new_tempo > 0 {
+						self.timer.change_tempo(new_tempo);
+					}
 				}
+				_ => (),
 			};
+			counter += 1;
 		}
 	}
 

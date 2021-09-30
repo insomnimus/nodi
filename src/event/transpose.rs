@@ -1,18 +1,23 @@
-use super::{Event, MidiEvent, Moment};
-use midly::MidiMessage;
 use std::mem;
 
+use midly::MidiMessage;
+
+use super::{Event, MidiEvent, Moment};
+
 impl Moment {
-	/// Transposes every note contained in this moment, returns `true` if anything has changed.
+	/// Transposes every note contained in this moment, returns `true` if
+	/// anything has changed.
 	///
 	/// # Arguments
-	/// -  `shift`: Amount of half notes the notes will be transposed with.
-	/// -  `transpose_ch9`:  If set to `true`, the notes in MIDI channel 9 (percussion by default) are also transposed.
+	/// - `shift`: Amount of half notes the notes will be transposed with.
+	/// - `transpose_ch9`:  If set to `true`, the notes in MIDI channel 9
+	///   (percussion by default) are also transposed.
 	///
 	/// # Notes
 	/// Only `NoteOn`, `NoteOff` and `Aftertouch` messages will be transposed.
-	/// The notes exceeding the MIDI treshold (0..=127) are dropped, meaning this function is lossy.
-	/// If after transposition, all the notes are dropped, `self` will be set to `Moment::Empty`.
+	/// The notes exceeding the MIDI treshold (0..=127) are dropped, meaning
+	/// this function is lossy. If after transposition, all the notes are
+	/// dropped, `self` will be set to `Moment::Empty`.
 	pub fn transpose(&mut self, shift: i8, transpose_ch9: bool) -> bool {
 		use midly::num::u7;
 

@@ -1,7 +1,7 @@
 [package]
 name = "nodi"
 description = "A library for playback and abstraction of MIDI files."
-version = "0.9.0"
+version = "0.9.1"
 edition = "2018"
 license = "MIT"
 authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
@@ -11,7 +11,7 @@ repository = "https://github.com/insomnimus/nodi"
 readme = "readme.md"
 
 [package.metadata.docs.rs]
-features = [ "midir" ]
+features = [ "midir", "verbose-log" ]
 all-features = true
 
 [[example]]
@@ -26,3 +26,6 @@ midly = "0.5.2"
 [dev-dependencies]
 clap = "3.0.0-beta.4"
 midir = "0.7.0"
+
+[features]
+verbose-log = []

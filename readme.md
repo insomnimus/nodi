@@ -33,9 +33,10 @@ Nodi uses the [log][] crate for the logging; you can use a compatible logger for
 No feature is enabled by default.
 
 -  `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
+-  `verbose-log`: Enables more logging, not recommended unless you really want to see the Ticker tick.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly
 [plmidi]: https://github.com/insomnimus/plmidi
 [midnote]: https://github.com/insomnimus/midnote
-[log]: https://docs.rs/log/0.4.14/log/
+[log]: https://docs.rs/log/

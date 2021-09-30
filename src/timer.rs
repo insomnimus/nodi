@@ -1,6 +1,6 @@
 use std::{convert::TryFrom, fmt, thread, time::Duration};
 
-use log::{debug, info, trace};
+use log::info;
 use midly::Timing;
 
 use crate::{Event, Moment};
@@ -27,7 +27,7 @@ pub trait Timer {
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
 	///
-	/// Using the [log] crate, if the log level is set to `debug`,
+	/// If the `verbose-log` feature is set and the log level is set to `debug`,
 	/// the sleep duration will be logged before any sleep happens.
 	/// If the log level is set to `trace`, the times when the returned duration
 	/// is 0 (does not cause [thread::sleep]), will also be logged.
@@ -35,10 +35,12 @@ pub trait Timer {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
-			debug!(target: "Timer", "sleeping the thread for {:?}", &t);
+			#[cfg(feature = "verbose-log")]
+			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			thread::sleep(t);
 		} else {
-			trace!(target: "Timer", "timer returned 0 duration, not sleeping")
+			#[cfg(feature = "verbose-log")]
+			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
 
@@ -91,7 +93,8 @@ impl fmt::Display for TimeFormatError {
 /// Use this when the MIDI file header specifies the time format as being
 /// [Timing::Metrical], this is the case 99% of the time.
 ///
-/// Set the log level to `info` (using the [log] crate) for logging the tempo change events.
+/// Set the log level to `info` (using the [log] crate) for logging the tempo
+/// change events.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ticker {
 	ticks_per_beat: u16,

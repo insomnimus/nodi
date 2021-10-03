@@ -7,7 +7,7 @@ use crate::{
 	Sheet, Timer,
 };
 
-/// A type that can play [Sheet]s.
+#[doc = include_str!("doc_player.md")]
 pub struct Player<T: Timer, C: Connection> {
 	/// An active midi connection.
 	pub con: C,

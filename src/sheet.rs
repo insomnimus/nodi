@@ -154,4 +154,9 @@ impl Sheet {
 			m.transpose(shift, transpose_ch9);
 		}
 	}
+
+	/// Returns a slice of every [Moment] in `self`. Equivalent to `&sheet[..]`.
+	pub fn as_moments(&self) -> &[Moment] {
+		&self.0[..]
+	}
 }

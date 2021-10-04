@@ -36,13 +36,13 @@ impl<T: Timer, C: Connection> Player<T, C> {
 
 		for moment in sheet {
 			match moment {
-				Moment::Events(events) if !events.is_empty() => {
+				Moment::Events(events) => {
 					self.timer.sleep(counter);
 					counter = 0;
-					let mut new_tempo = 0;
+
 					for event in events {
 						match event {
-							Event::Tempo(val) => new_tempo = *val,
+							Event::Tempo(val) => self.timer.change_tempo(*val),
 							Event::Midi(msg) => {
 								if let Err(e) = self.con.play(msg) {
 									error!("failed to send a midi message: {:?}", e);
@@ -50,9 +50,6 @@ impl<T: Timer, C: Connection> Player<T, C> {
 							}
 							_ => (),
 						};
-					}
-					if new_tempo > 0 {
-						self.timer.change_tempo(new_tempo);
 					}
 				}
 				_ => (),

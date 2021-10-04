@@ -2,7 +2,11 @@ use std::mem;
 
 use midly::MidiMessage;
 
-use super::{Event, MidiEvent, Moment};
+use super::{
+	Event,
+	MidiEvent,
+	Moment,
+};
 
 impl Moment {
 	/// Transposes every note contained in this moment, returns `true` if

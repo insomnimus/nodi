@@ -1,9 +1,26 @@
-use std::{convert::TryFrom, error::Error, fs};
+use std::{
+	convert::TryFrom,
+	error::Error,
+	fs,
+};
 
-use clap::{App, Arg};
-use midir::{MidiOutput, MidiOutputConnection};
-use midly::{Format, Smf};
-use nodi::{Player, Sheet, Ticker};
+use clap::{
+	App,
+	Arg,
+};
+use midir::{
+	MidiOutput,
+	MidiOutputConnection,
+};
+use midly::{
+	Format,
+	Smf,
+};
+use nodi::{
+	Player,
+	Sheet,
+	Ticker,
+};
 
 struct Args {
 	file: String,

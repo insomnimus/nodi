@@ -1,9 +1,18 @@
-use std::{convert::TryFrom, fmt, thread, time::Duration};
+use std::{
+	convert::TryFrom,
+	fmt,
+	sync::mpsc::Receiver,
+	thread,
+	time::Duration,
+};
 
 use log::info;
 use midly::Timing;
 
-use crate::{Event, Moment};
+use crate::{
+	Event,
+	Moment,
+};
 
 /// Used for timing MIDI playback.
 pub trait Timer {
@@ -27,10 +36,11 @@ pub trait Timer {
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
 	///
-	/// With the provided implementation: If the `verbose-log` feature is enabled and the log level is set to `debug`,
-	/// the sleep duration will be logged before any sleep happens.
-	/// If the log level is set to `trace`, the times when the returned duration
-	/// is 0 (does not cause [thread::sleep]), will also be logged.
+	/// With the provided implementation: If the `verbose-log` feature is
+	/// enabled and the log level is set to `debug`, the sleep duration will be
+	/// logged before any sleep happens. If the log level is set to `trace`, the
+	/// times when the returned duration is 0 (does not cause [thread::sleep]),
+	/// will also be logged.
 	fn sleep(&self, n_ticks: u32) {
 		let t = self.sleep_duration(n_ticks);
 
@@ -192,4 +202,106 @@ impl Timer for FixedTempo {
 
 	/// This function does nothing.
 	fn change_tempo(&mut self, _: u32) {}
+}
+
+/// A [Timer] that lets you toggle playback.
+///
+/// This type works exactly like [Ticker], but it checks for messages
+/// on a [Receiver] and toggles playback if there is one.
+///
+/// Sending a message to [self.pause] will pause the thread until another
+/// message is received.
+///
+/// # Notes
+/// Using [Ticker] is recommended over this, mainly because there is the
+/// overhead of [Receiver] with this type.
+///
+/// Calling [sleep](Self::sleep) will panic if the corresponding end of the
+/// receiver is poisoned, see the [mpsc](std::sync::mpsc) documentation for
+/// more.
+#[derive(Debug)]
+pub struct ControlTicker {
+	ticks_per_beat: u16,
+	micros_per_tick: f64,
+	/// Speed modifier, a value of `1.0` is the default and affects nothing.
+	///
+	/// Important: Do not set to 0.0, this value is used as a denominator.
+	pub speed: f32,
+	/// Messages to this channel will toggle playback.
+	pub pause: Receiver<()>,
+}
+
+impl ControlTicker {
+	/// Creates an instance of [Self] with the given ticks-per-beat.
+	/// The tempo will be infinitely rapid, meaning no sleeps will happen.
+	/// However this is rarely an issue since a tempo change message will set
+	/// it, and this usually happens before any non-0 offset event.
+	pub fn new(ticks_per_beat: u16, pause: Receiver<()>) -> Self {
+		Self {
+			ticks_per_beat,
+			pause,
+			micros_per_tick: 0.0,
+			speed: 1.0,
+		}
+	}
+
+	/// Will create an instance of [Self] with a provided tempo.
+	pub fn with_initial_tempo(ticks_per_beat: u16, tempo: u32, pause: Receiver<()>) -> Self {
+		let mut s = Self::new(ticks_per_beat, pause);
+		s.change_tempo(tempo);
+		s
+	}
+}
+
+impl Timer for ControlTicker {
+	fn change_tempo(&mut self, tempo: u32) {
+		let micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
+		info! {
+			target: "Ticker",
+			"tempo change: {} (microseconds per tick: {} -> {})",
+			tempo,
+			self.micros_per_tick,
+			micros_per_tick,
+		};
+		self.micros_per_tick = micros_per_tick;
+	}
+
+	fn sleep_duration(&self, n_ticks: u32) -> Duration {
+		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
+		if t > 0.0 {
+			Duration::from_micros(t as u64)
+		} else {
+			Duration::default()
+		}
+	}
+
+	/// Same with [Ticker::sleep], except it checks if there are any messages on
+	/// [self.pause], if there is a message, waits for another one before
+	/// ocntinuing with the sleep.
+	///
+	/// # Notes
+	/// Using the [log] crate and setting the log level to info, pauses and
+	/// unpauses will be logged.
+	fn sleep(&self, n_ticks: u32) {
+		// Check if we're supposed to be paused.
+		if self.pause.try_recv().is_ok() {
+			info!(target: "Timer", "received pause message, blocking the thread");
+			// Wait for the next message in order to continue, continue.
+			self.pause
+				.recv()
+				.unwrap_or_else(|e| panic!("Ticker: pause channel receive failed: {:?}", e));
+			info!(target: "Timer", "received unpause message, continuing the thread");
+		}
+
+		let t = self.sleep_duration(n_ticks);
+
+		if !t.is_zero() {
+			#[cfg(feature = "verbose-log")]
+			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
+			thread::sleep(t);
+		} else {
+			#[cfg(feature = "verbose-log")]
+			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
+		}
+	}
 }

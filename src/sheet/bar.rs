@@ -1,10 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{
-	Event,
-	Moment,
-	Sheet,
-};
+use crate::{Event, Moment, Sheet};
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 struct TimeSignature {

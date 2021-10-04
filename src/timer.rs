@@ -1,18 +1,9 @@
-use std::{
-	convert::TryFrom,
-	fmt,
-	sync::mpsc::Receiver,
-	thread,
-	time::Duration,
-};
+use std::{convert::TryFrom, fmt, sync::mpsc::Receiver, thread, time::Duration};
 
 use log::info;
 use midly::Timing;
 
-use crate::{
-	Event,
-	Moment,
-};
+use crate::{Event, Moment};
 
 /// Used for timing MIDI playback.
 pub trait Timer {
@@ -132,6 +123,16 @@ impl Ticker {
 		s.change_tempo(tempo);
 		s
 	}
+
+	/// Upgrades `self` to a [ControlTicker].
+	pub fn to_control(self, pause: Receiver<()>) -> ControlTicker {
+		ControlTicker {
+			speed: self.speed,
+			micros_per_tick: self.micros_per_tick,
+			ticks_per_beat: self.ticks_per_beat,
+			pause,
+		}
+	}
 }
 
 impl Timer for Ticker {
@@ -250,6 +251,15 @@ impl ControlTicker {
 		let mut s = Self::new(ticks_per_beat, pause);
 		s.change_tempo(tempo);
 		s
+	}
+
+	/// Casts `self` to a [Ticker].
+	pub fn as_ticker(&self) -> Ticker {
+		Ticker {
+			ticks_per_beat: self.ticks_per_beat,
+			micros_per_tick: self.micros_per_tick,
+			speed: self.speed,
+		}
 	}
 }
 

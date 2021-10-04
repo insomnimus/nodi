@@ -2,23 +2,12 @@ use core::{
 	borrow::Borrow,
 	convert::TryFrom,
 	iter::IntoIterator,
-	ops::{
-		Index,
-		IndexMut,
-		Range,
-		RangeFrom,
-		RangeFull,
-		RangeTo,
-	},
+	ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeTo},
 };
 
 use midly::TrackEvent;
 
-use crate::{
-	Event,
-	Moment,
-	Sheet,
-};
+use crate::{Event, Moment, Sheet};
 
 impl Extend<Moment> for Sheet {
 	fn extend<T: IntoIterator<Item = Moment>>(&mut self, moments: T) {

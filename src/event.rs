@@ -1,17 +1,8 @@
 mod transpose;
 
-use std::{
-	convert::TryFrom,
-	io,
-};
+use std::{convert::TryFrom, io};
 
-use midly::{
-	live::LiveEvent,
-	num::u4,
-	MetaMessage,
-	MidiMessage,
-	TrackEventKind,
-};
+use midly::{live::LiveEvent, num::u4, MetaMessage, MidiMessage, TrackEventKind};
 
 /// Represents a single moment (tick) in a MIDI track.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

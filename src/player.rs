@@ -1,18 +1,10 @@
 use log::error;
 #[cfg(any(feature = "midir", doc, test))]
-use midir::{
-	self,
-	MidiOutputConnection,
-};
+use midir::{self, MidiOutputConnection};
 
 use crate::{
-	event::{
-		Event,
-		MidiEvent,
-		Moment,
-	},
-	Sheet,
-	Timer,
+	event::{Event, MidiEvent, Moment},
+	Sheet, Timer,
 };
 
 #[doc = include_str!("doc_player.md")]

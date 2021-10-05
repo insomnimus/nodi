@@ -38,7 +38,7 @@ pub trait Timer {
 		if !t.is_zero() {
 			#[cfg(feature = "verbose-log")]
 			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
-			thread::sleep(t);
+			sleep(t);
 		} else {
 			#[cfg(feature = "verbose-log")]
 			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
@@ -308,10 +308,35 @@ impl Timer for ControlTicker {
 		if !t.is_zero() {
 			#[cfg(feature = "verbose-log")]
 			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
-			thread::sleep(t);
+			sleep(t);
 		} else {
 			#[cfg(feature = "verbose-log")]
 			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
+}
+
+#[cfg(feature = "hybrid-sleep")]
+fn sleep(t: Duration) {
+	static LIMIT: u128 = 4500000;
+	let ns = t.as_nanos();
+	let t = if ns < LIMIT {
+		ns
+	} else {
+		let rem = ns % LIMIT;
+		thread::sleep(Duration::from_nanos((ns - rem) as u64));
+		rem
+	};
+	spin_lock(Duration::from_nanos(t as u64));
+}
+
+#[cfg(feature = "hybrid-sleep")]
+fn spin_lock(t: Duration) {
+	let now = std::time::Instant::now();
+	while now.elapsed() < t {}
+}
+
+#[cfg(not(feature = "hybrid-sleep"))]
+fn sleep(t: Duration) {
+	thread::sleep(t);
 }

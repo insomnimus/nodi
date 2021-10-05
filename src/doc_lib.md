@@ -25,10 +25,11 @@ Here are some real-world examples of nodi in action:
 Nodi uses the [log] crate for the logging; you can use a compatible logger for consumption.
 
 # Crate Features
-No feature is enabled by default.
+By default, only the `hybrid-sleep` feature is enabled.
 
--  `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
--  `verbose-log`: Enables more logging, not recommended unless you really want to see the Ticker tick.
+- `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
+- `verbose-log`: Enables more logging, not recommended unless you really want to see the Ticker tick.
+- `hybrid-sleep`: Makes use of efficient spin-locking for more precise timing, does not tax the cpu because only durations smaller than 4.5 milliseconds will be spin-locked.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly

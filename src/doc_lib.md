@@ -28,7 +28,7 @@ Nodi uses the [log] crate for the logging; you can use a compatible logger for c
 # Crate Features
 Features enabled by default:
 
-- `hybrid-sleep` A more accurate sleep, mixing regular sleep with spin locking efficiently. Highly recommended for Windows users but it may also increase timing on other platforms.
+- `hybrid-sleep`: A more accurate sleep, mixing regular sleep with spin locking efficiently. With this feature enabled the default implementations of [Timer]s in this crate will use this. Highly recommended for Windows users but it may also increase timing on other platforms.
 
 Optional features:
 

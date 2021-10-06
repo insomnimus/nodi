@@ -23,6 +23,14 @@
           "uses": "actions/checkout@v2"
         },
         {
+          "name": "Setup | Install Dependencies",
+          "if": "matrix.os == 'ubuntu-latest'",
+          "env": {
+            "DEBIAN_FRONTEND": "noninteractive"
+          },
+          "run": "sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential pkg-config libasound2-dev"
+        },
+        {
           "name": "Setup | Rust",
           "uses": "actions-rs/toolchain@v1.0.7",
           "with": {

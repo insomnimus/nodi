@@ -37,6 +37,8 @@ Features enabled by default:
 Optional features:
 
 - `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
+- `jack`: Same with `midir` but uses the Jack backend.
+- `winrt`: Same with `midir` but uses the WinRT backend.
 - `verbose-log`: Enables more logging, not recommended unless you really want to see the Ticker tick.
 
 [midir]: https://crates.io/crates/midir

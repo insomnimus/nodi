@@ -316,27 +316,46 @@ impl Timer for ControlTicker {
 	}
 }
 
-#[cfg(feature = "hybrid-sleep")]
-fn sleep(t: Duration) {
-	static LIMIT: u128 = 4500000;
-	let ns = t.as_nanos();
-	let t = if ns < LIMIT {
-		ns
+/// Sleeps the thread with the given duration.
+///
+/// Sleeps with [thread::sleep] for the most of the time
+/// and spin-locks for the last T milliseconds, where T:
+/// - Windows: 15.
+/// - Non-Windows: 3.
+#[cfg(any(doc, test, feature = "hybrid-sleep"))]
+pub fn sleep(t: Duration) {
+	use std::time::Instant;
+	#[cfg(windows)]
+	const LIMIT: Duration = Duration::from_millis(15);
+	#[cfg(not(windows))]
+	const LIMIT: Duration = Duration::from_millis(3);
+
+	let t = if t < LIMIT {
+		t
 	} else {
-		let rem = ns % LIMIT;
-		thread::sleep(Duration::from_nanos((ns - rem) as u64));
-		rem
+		let mut last = Instant::now();
+		let mut remaining = t;
+		loop {
+			thread::sleep(Duration::from_millis(1));
+			let now = Instant::now();
+			remaining = remaining.checked_sub(now - last).unwrap_or_default();
+			if remaining <= LIMIT {
+				break remaining;
+			}
+			last = now;
+		}
 	};
-	spin_lock(Duration::from_nanos(t as u64));
+	spin_lock(t);
 }
 
 #[cfg(feature = "hybrid-sleep")]
+#[inline]
 fn spin_lock(t: Duration) {
 	let now = std::time::Instant::now();
 	while now.elapsed() < t {}
 }
 
-#[cfg(not(feature = "hybrid-sleep"))]
+#[cfg(not(any(doc, test, feature = "hybrid-sleep")))]
 fn sleep(t: Duration) {
 	thread::sleep(t);
 }

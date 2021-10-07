@@ -18,7 +18,7 @@ In the rare case that the timing is not metrical but [Timing::Timecode], you can
 ## Examples
 Obtaining a timer:
 
-```no_run
+```ignore
 use std::convert::TryFrom;
 use nodi::{Timer, timers::{Ticker, FixedTempo}};
 use midly::{Smf, Timing};

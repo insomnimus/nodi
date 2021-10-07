@@ -6,7 +6,7 @@ However you can implement your own [Connection], instead of using [midir][].
 # A Basic Workflow
 
 - Use [midly][] to parse a MIDI file.
-- Create a [Ticker] from the `header`.
+- Create a [Timer] from the `header`.
 - Create a [Sheet] from the parsed [tracks](midly::Track).
 - Initialize a MIDI connection using [midir][].
 - Create a [Player] from the connection and the timer.
@@ -24,7 +24,6 @@ Here are some real-world examples of nodi in action:
 # Debugging
 Nodi uses the [log] crate for the logging; you can use a compatible logger for consumption.
 
-# Crate Features
 # Crate Features
 Features enabled by default:
 

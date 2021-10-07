@@ -71,7 +71,7 @@ impl Sheet {
 	///
 	/// # Arguments
 	/// - `ticks_per_beat`: Obtained from a [Header](midly::Header), same value
-	///   used for constructing a [Ticker](crate::Ticker).
+	///   used for constructing a [Ticker](crate::timers::Ticker).
 	pub fn into_bars(self, ticks_per_beat: u16) -> Bars {
 		Bars {
 			tpb: ticks_per_beat as f32,

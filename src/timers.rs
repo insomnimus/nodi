@@ -1,72 +1,11 @@
+#![doc = include_str!("doc_timers.md")]
+
 use std::{convert::TryFrom, fmt, sync::mpsc::Receiver, thread, time::Duration};
 
 use log::info;
 use midly::Timing;
 
-use crate::{Event, Moment};
-
-/// Used for timing MIDI playback.
-pub trait Timer {
-	/// Returns the [Duration] that should be slept for.
-	///
-	/// # Arguments
-	/// - `n_ticks`: Number of MIDI ticks to sleep for.
-	fn sleep_duration(&self, n_ticks: u32) -> Duration;
-
-	/// Changes the timers tempo.
-	///
-	/// # Arguments
-	/// - `tempo`: Represents microseconds per a beat (MIDI quarter note).
-	fn change_tempo(&mut self, tempo: u32);
-
-	/// Sleeps given number of ticks.
-	/// The provided implementation will call [thread::sleep] with the argument
-	/// being `self.sleep_duration(n_ticks)`.
-	///
-	/// # Notes
-	/// The provided implementation will not sleep if
-	/// `self.sleep_duration(n_ticks).is_zero()`.
-	///
-	/// With the provided implementation: If the `verbose-log` feature is
-	/// enabled and the log level is set to `debug`, the sleep duration will be
-	/// logged before any sleep happens. If the log level is set to `trace`, the
-	/// times when the returned duration is 0 (does not cause [thread::sleep]),
-	/// will also be logged.
-	fn sleep(&self, n_ticks: u32) {
-		let t = self.sleep_duration(n_ticks);
-
-		if !t.is_zero() {
-			#[cfg(feature = "verbose-log")]
-			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
-			sleep(t);
-		} else {
-			#[cfg(feature = "verbose-log")]
-			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
-		}
-	}
-
-	/// Calculates the length of a track or a slice of [Moment]s.
-	///
-	/// # Notes
-	/// The default implementation modifies `self` if a tempo event is found.
-	fn duration(&mut self, moments: &[Moment]) -> Duration {
-		let mut counter = Duration::default();
-		for moment in moments {
-			counter += self.sleep_duration(1);
-			match moment {
-				Moment::Events(events) if !events.is_empty() => {
-					for event in events {
-						if let Event::Tempo(val) = event {
-							self.change_tempo(*val);
-						}
-					}
-				}
-				_ => (),
-			};
-		}
-		counter
-	}
-}
+use crate::Timer;
 
 /// An error that might arise while converting [Timing] to a [Ticker] or
 /// [FixedTempo].
@@ -179,8 +118,8 @@ impl TryFrom<Timing> for Ticker {
 ///
 /// # Notes
 /// This type corresponds to [Timing::Timecode] and can be converted using
-/// [TryFrom::from]. Try to avoid using this timer because it's not tested (it's
-/// very rare to get [Timing::Timecode] in real life).
+/// [TryFrom::try_from]. Try to avoid using this timer because it's not tested
+/// (it's very rare to get [Timing::Timecode] in real life).
 pub struct FixedTempo(pub u64);
 
 impl TryFrom<Timing> for FixedTempo {
@@ -356,6 +295,6 @@ fn spin_lock(t: Duration) {
 }
 
 #[cfg(not(any(doc, test, feature = "hybrid-sleep")))]
-fn sleep(t: Duration) {
+pub(crate) fn sleep(t: Duration) {
 	thread::sleep(t);
 }

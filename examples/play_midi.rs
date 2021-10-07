@@ -3,7 +3,7 @@ use std::{convert::TryFrom, error::Error, fs};
 use clap::{App, Arg};
 use midir::{MidiOutput, MidiOutputConnection};
 use midly::{Format, Smf};
-use nodi::{Player, Sheet, Ticker};
+use nodi::{timers::Ticker, Player, Sheet};
 
 struct Args {
 	file: String,

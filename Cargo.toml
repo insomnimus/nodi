@@ -11,8 +11,9 @@ repository = "https://github.com/insomnimus/nodi"
 readme = "readme.md"
 
 [package.metadata.docs.rs]
-features = [ "midir", "verbose-log", "hybrid-sleep", "jack" ]
-all-features = true
+features = [ "midir", "verbose-log", "hybrid-sleep"]
+default-target = "x86_64-pc-windows-msvc" # avoids the need to download C dependencies
+targets = []
 
 [[example]]
 name = "play_midi"

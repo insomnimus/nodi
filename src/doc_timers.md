@@ -18,7 +18,7 @@ In the rare case that the timing is not metrical but [Timing::Timecode], you can
 ## Examples
 Obtaining a timer:
 
-```ignore
+```no_run
 use std::convert::TryFrom;
 use nodi::{Timer, timers::{Ticker, FixedTempo}};
 use midly::{Smf, Timing};
@@ -39,4 +39,5 @@ let timer: Box<dyn Timer> = match header.timing {
 };
 
 // Use the timer
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```

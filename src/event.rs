@@ -65,7 +65,7 @@ pub enum Event {
 /// let msg: MidiEvent = /* ... */;
 /// let mut buf = Vec::new();
 /// msg.write(&mut buf)?;
-/// // Now `bf` contains a valid MIDI message, send it to a MIDI api like `midir::MidiOutputConnection`.
+/// // Now `buf` contains a valid MIDI message, send it to a MIDI api like `midir::MidiOutputConnection`.
 /// ```
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct MidiEvent {

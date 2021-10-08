@@ -12,22 +12,19 @@ using `&sheet[..]` or directly calling [`.into_iter()`](Sheet::into_iter).
 
 # Examples
 
-```ignore
-use std::fs;
+```no_run
 use midly::{Format, Smf};
 use nodi::Sheet;
-
-// Assume we have a Vec<u8>, representing a midi file.
-// We can parse this file using the midly crate.
-let bytes = fs::read("example.mid")?;
-// Here we deconstruct `Smf`.
-let Smf{header, tracks} = Smf::parse(&bytes)?;
+// Assume `data` contains the bytes of some MIDI file (.mid).
+let data = Vec::new();
+// We can parse the file using the midly crate:
+let Smf{header, tracks} = Smf::parse(&data)?;
 
 // Since a Sheet is header independant, we can construct it from `tracks`.
 // However MIDI files may specify how the tracks are to be played, so we still read the header
 // for an appropriate representation.
 let sheet = match header.format {
-    // Here we use the `sequential` method, to be fail-proof, because a file
+    // Here we use `sequential`  to be fail-proof, because a file
     // can specify the format as single and still have multiple tracks in it.
     Format::SingleTrack => Sheet::sequential(&tracks),
     Format::Sequential=> Sheet::sequential(&tracks), // This concatenates each track into one.
@@ -35,4 +32,5 @@ let sheet = match header.format {
 };
 
 // Do stuff with the sheet.
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```

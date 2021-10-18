@@ -291,7 +291,9 @@ pub fn sleep(t: Duration) {
 #[inline]
 fn spin_lock(t: Duration) {
 	let now = std::time::Instant::now();
-	while now.elapsed() < t {}
+	while now.elapsed() < t {
+		std::hint::spin_loop();
+	}
 }
 
 #[cfg(not(any(doc, test, feature = "hybrid-sleep")))]

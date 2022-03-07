@@ -1,6 +1,6 @@
 use std::{convert::TryFrom, error::Error, fs};
 
-use clap::{App, Arg};
+use clap::{arg, Command};
 use midir::{MidiOutput, MidiOutputConnection};
 use midly::{Format, Smf};
 use nodi::{timers::Ticker, Player, Sheet};
@@ -13,31 +13,19 @@ struct Args {
 
 impl Args {
 	fn from_args() -> Self {
-		let m = App::new("play_midi")
+		let m = Command::new("play_midi")
 			.about("An example midi player.")
-			.arg(
-				Arg::new("device")
-					.about("The midi device that will be used for synthesis.")
+			.args(&[
+				arg!(-d --device [DEVICE] "Index of the MIDI device to use.")
 					.default_value("0")
-					.short('d')
-					.long("device")
 					.validator(|s| {
 						s.parse::<usize>()
 							.map(|_| {})
-							.map_err(|_| String::from("the value must be a non-negative integer"))
+							.map_err(|_| String::from("the value must be a positive integer or 0"))
 					}),
-			)
-			.arg(
-				Arg::new("list")
-					.about("List available midi devices.")
-					.short('l')
-					.long("list"),
-			)
-			.arg(
-				Arg::new("file")
-					.about("A .mid file to play.")
-					.required_unless_present("list"),
-			)
+				arg!(-l --list "List available MIDI devices."),
+				arg!(file: [FILE] "A MIDI file to play.").required_unless_present("list"),
+			])
 			.get_matches();
 
 		let list = m.is_present("list");

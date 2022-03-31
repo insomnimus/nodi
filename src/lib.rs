@@ -36,7 +36,7 @@ pub trait Timer {
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
 	///
-	/// With the provided implementation: If the `verbose-log` feature is
+	/// With the provided implementation: If the `verbose-tracing` feature is
 	/// enabled and the log level is set to `debug`, the sleep duration will be
 	/// logged before any sleep happens. If the log level is set to `trace`, the
 	/// times when the returned duration is 0 (does not cause a sleep),
@@ -45,11 +45,11 @@ pub trait Timer {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
-			#[cfg(feature = "verbose-log")]
+			#[cfg(feature = "verbose-tracing")]
 			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			sleep(t);
 		} else {
-			#[cfg(feature = "verbose-log")]
+			#[cfg(feature = "verbose-tracing")]
 			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}

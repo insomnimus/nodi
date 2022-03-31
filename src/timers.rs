@@ -245,11 +245,11 @@ impl Timer for ControlTicker {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
-			#[cfg(feature = "verbose-log")]
+			#[cfg(feature = "verbose-tracing")]
 			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			sleep(t);
 		} else {
-			#[cfg(feature = "verbose-log")]
+			#[cfg(feature = "verbose-tracing")]
 			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}

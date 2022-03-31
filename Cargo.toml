@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT"
 authors = [ "Taylan Gökkaya <insomnimus.dev@gmail.com>" ]
 categories = [ "multimedia::audio", "multimedia::encoding" ]
-keywords = [ "midi", "audio", "music" ]
+keywords = [ "midi", "audio", "music", "smf" ]
 repository = "https://github.com/insomnimus/nodi"
 readme = "readme.md"
 

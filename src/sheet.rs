@@ -55,7 +55,7 @@ impl Sheet {
 
 		for track in &tracks[1..] {
 			let sh = Self::from(track.as_slice());
-			first.append(sh);
+			first.extend(sh);
 		}
 		first
 	}
@@ -70,16 +70,7 @@ impl Sheet {
 		Self(Vec::with_capacity(cap))
 	}
 
-	/// Creates a `Sheet` from the given [Vec].
-	///
-	/// Note: This function does not parse the given moments but instead just
-	/// wraps them with `Sheet`. Use [Sheet::single], [Sheet::parallel] or
-	/// [Sheet::sequential] if you want to calculate the time offsets.
-	pub fn with_moments(moments: impl IntoIterator<Item = Moment>) -> Self {
-		Self(moments.into_iter().collect())
-	}
-
-	/// Returns the wrapped `Vec<Moment>`, destroying `self`.
+	/// Destroys `self` yielding the underlying [Vec].
 	pub fn into_inner(self) -> Vec<Moment> {
 		self.0
 	}
@@ -98,15 +89,6 @@ impl Sheet {
 	/// Returns `Self::len() == 0`.
 	pub fn is_empty(&self) -> bool {
 		self.0.is_empty()
-	}
-
-	/// Appends another [Sheet] to `self`, destroying the other.
-	///
-	/// # Notes
-	/// This method will join two tracks end to end. If you want to merge them
-	/// instead, see [merge_with](Sheet::merge_with).
-	pub fn append(&mut self, other: Self) {
-		self.0.extend(other.0);
 	}
 
 	/// Merges `self` with another [Sheet], destroying the other.

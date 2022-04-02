@@ -1,7 +1,7 @@
 use core::{
 	borrow::Borrow,
 	convert::TryFrom,
-	iter::IntoIterator,
+	iter::{FromIterator, IntoIterator},
 	ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeTo},
 };
 
@@ -119,5 +119,11 @@ impl Index<RangeFull> for Sheet {
 impl Borrow<[Moment]> for Sheet {
 	fn borrow(&self) -> &[Moment] {
 		&self.0[..]
+	}
+}
+
+impl FromIterator<Moment> for Sheet {
+	fn from_iter<I: IntoIterator<Item = Moment>>(it: I) -> Self {
+		Self(Vec::from_iter(it))
 	}
 }

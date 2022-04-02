@@ -30,11 +30,8 @@ impl Iterator for Bars {
 	type Item = Vec<Moment>;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		if self.buf.is_empty() {
-			return None;
-		}
 		// Check if start of bar has time signature.
-		let first = self.buf.pop_front().unwrap();
+		let first = self.buf.pop_front()?;
 		if let Some(time_sig) = find_time_sig(&first) {
 			self.time_sig = time_sig;
 		}
@@ -42,7 +39,7 @@ impl Iterator for Bars {
 			return Some(vec![first]);
 		}
 
-		let len_32nd = self.tpb / 8.0; // self.beat_32s as f32;
+		let len_32nd = self.tpb / 8.0;
 		let chunk_len = (self.time_sig.bar_32s() * len_32nd as f32) as usize;
 		let mut temp = Vec::with_capacity(chunk_len);
 		temp.push(first);

@@ -39,7 +39,7 @@ Optional features:
 - `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
 - `jack`: Same with `midir` but uses the Jack backend.
 - `winrt`: Same with `midir` but uses the WinRT backend.
-- `verbose-tracing`: Enables super verbose tracing, don't enable it unelss you want to see the ticker tick.
+- `verbose-tracing`: Enables super verbose tracing, don't enable it unless you want to see the ticker tick.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly

@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{Event, Moment, Sheet};
 
-#[derive(Eq, PartialEq, Copy, Clone)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
 struct TimeSignature {
 	// Beats per bar.
 	numerator: u8,
@@ -19,6 +19,7 @@ impl TimeSignature {
 }
 
 /// An iterator over bars in a MIDI [Sheet].
+#[derive(Debug, Clone, PartialEq)]
 pub struct Bars {
 	time_sig: TimeSignature,
 	// beat_32s: u8,
@@ -30,7 +31,7 @@ impl Iterator for Bars {
 	type Item = Vec<Moment>;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		// Check if start of bar has time signature.
+		// Check if start of the bar has time signature.
 		let first = self.buf.pop_front()?;
 		if let Some(time_sig) = find_time_sig(&first) {
 			self.time_sig = time_sig;

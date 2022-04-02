@@ -95,7 +95,7 @@ impl Sheet {
 	///
 	/// # Notes
 	/// This method will combine every moment in both [Sheet]s into one. If you
-	/// want to join them end to end instead, see [Sheet::append].
+	/// want to join them end to end instead, use [Sheet::extend].
 	pub fn merge_with(&mut self, other: Self) {
 		if other.len() > self.len() {
 			let n_new = other.len() - self.len();

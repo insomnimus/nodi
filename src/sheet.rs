@@ -8,7 +8,7 @@ mod impls;
 pub use bar::Bars;
 
 #[doc = include_str!("doc_sheet.md")]
-#[derive(Default, Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Sheet(pub(crate) Vec<Moment>);
 
 impl Sheet {

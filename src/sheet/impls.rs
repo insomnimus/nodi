@@ -2,7 +2,7 @@ use core::{
 	borrow::Borrow,
 	convert::TryFrom,
 	iter::{FromIterator, IntoIterator},
-	ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeTo},
+	ops::{Deref, Index, IndexMut},
 };
 
 use midly::TrackEvent;
@@ -21,68 +21,6 @@ impl IntoIterator for Sheet {
 
 	fn into_iter(self) -> Self::IntoIter {
 		self.0.into_iter()
-	}
-}
-
-impl Index<usize> for Sheet {
-	type Output = Moment;
-
-	fn index(&self, n: usize) -> &Self::Output {
-		&self.0[n]
-	}
-}
-
-impl IndexMut<usize> for Sheet {
-	fn index_mut(&mut self, n: usize) -> &mut Self::Output {
-		&mut self.0[n]
-	}
-}
-
-impl IndexMut<Range<usize>> for Sheet {
-	fn index_mut(&mut self, r: Range<usize>) -> &mut Self::Output {
-		&mut self.0[r]
-	}
-}
-
-impl IndexMut<RangeFrom<usize>> for Sheet {
-	fn index_mut(&mut self, r: RangeFrom<usize>) -> &mut Self::Output {
-		&mut self.0[r]
-	}
-}
-
-impl IndexMut<RangeTo<usize>> for Sheet {
-	fn index_mut(&mut self, r: RangeTo<usize>) -> &mut Self::Output {
-		&mut self.0[r]
-	}
-}
-
-impl IndexMut<RangeFull> for Sheet {
-	fn index_mut(&mut self, r: RangeFull) -> &mut Self::Output {
-		&mut self.0[r]
-	}
-}
-
-impl Index<Range<usize>> for Sheet {
-	type Output = [Moment];
-
-	fn index(&self, r: Range<usize>) -> &Self::Output {
-		&self.0[r]
-	}
-}
-
-impl Index<RangeFrom<usize>> for Sheet {
-	type Output = [Moment];
-
-	fn index(&self, r: RangeFrom<usize>) -> &Self::Output {
-		&self.0[r]
-	}
-}
-
-impl Index<RangeTo<usize>> for Sheet {
-	type Output = [Moment];
-
-	fn index(&self, r: RangeTo<usize>) -> &Self::Output {
-		&self.0[r]
 	}
 }
 
@@ -108,14 +46,6 @@ impl<'a> From<&[TrackEvent<'a>]> for Sheet {
 	}
 }
 
-impl Index<RangeFull> for Sheet {
-	type Output = [Moment];
-
-	fn index(&self, r: RangeFull) -> &Self::Output {
-		&self.0[r]
-	}
-}
-
 impl Borrow<[Moment]> for Sheet {
 	fn borrow(&self) -> &[Moment] {
 		&self.0[..]
@@ -125,5 +55,31 @@ impl Borrow<[Moment]> for Sheet {
 impl FromIterator<Moment> for Sheet {
 	fn from_iter<I: IntoIterator<Item = Moment>>(it: I) -> Self {
 		Self(Vec::from_iter(it))
+	}
+}
+
+impl Deref for Sheet {
+	type Target = [Moment];
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
+
+impl<I> Index<I> for Sheet
+where
+	Vec<Moment>: Index<I>,
+{
+	type Output = <Vec<Moment> as Index<I>>::Output;
+	fn index(&self, i: I) -> &Self::Output {
+		self.0.index(i)
+	}
+}
+
+impl<I> IndexMut<I> for Sheet
+where
+	Vec<Moment>: IndexMut<I>,
+{
+	fn index_mut(&mut self, i: I) -> &mut Self::Output {
+		self.0.index_mut(i)
 	}
 }

@@ -1,10 +1,9 @@
-use log::error;
-#[cfg(any(feature = "midir", doc, test))]
+#[cfg(feature = "midir")]
 use midir::{self, MidiOutputConnection};
 
 use crate::{
 	event::{Event, MidiEvent, Moment},
-	Sheet, Timer,
+	Timer,
 };
 
 #[doc = include_str!("doc_player.md")]
@@ -30,8 +29,11 @@ impl<T: Timer, C: Connection> Player<T, C> {
 	///
 	/// # Notes
 	/// The tempo change events are handled by `self.timer` and playing sound by
-	/// `self.con`
-	pub fn play_moments(&mut self, sheet: &[Moment]) {
+	/// `self.con`.
+	///
+	/// Stops playing if [Connection::play] returns `false`.
+	/// Returns `true` if the track is played through the end, `false` otherwise.
+	pub fn play(&mut self, sheet: &[Moment]) -> bool {
 		let mut counter = 0_u32;
 
 		for moment in sheet {
@@ -44,8 +46,8 @@ impl<T: Timer, C: Connection> Player<T, C> {
 						match event {
 							Event::Tempo(val) => self.timer.change_tempo(*val),
 							Event::Midi(msg) => {
-								if let Err(e) = self.con.play(msg) {
-									error!("failed to send a midi message: {:?}", e);
+								if !self.con.play(msg) {
+									return false;
 								}
 							}
 							_ => (),
@@ -56,36 +58,29 @@ impl<T: Timer, C: Connection> Player<T, C> {
 			};
 			counter += 1;
 		}
-	}
 
-	/// Plays the given [Sheet].
-	///
-	/// Equivalent to `.play_moments(&sheet[..])`.
-	/// See also [Player::play_moments].
-	pub fn play_sheet(&mut self, sheet: &Sheet) {
-		self.play_moments(&sheet[..])
+		true
 	}
 }
 
 /// Any type that can play sound, given a [MidiEvent].
 ///
-/// This trait is implemented for [midir::MidiOutputConnection], if the `midir`
-/// feature is set.
+/// This trait is implemented for midir::MidiOutputConnection, if the `midir`
+/// feature is enabled.
 pub trait Connection {
-	/// Any error that may arise while playing a MIDI message.
-	type Error: std::error::Error;
-
 	/// Given a [MidiEvent], plays the message.
-	fn play(&mut self, msg: &MidiEvent) -> Result<(), Self::Error>;
+	///
+	/// If this function returns `false`, [Player::play] will stop playing and return.
+	fn play(&mut self, msg: &MidiEvent) -> bool;
 }
 
-#[cfg(any(feature = "midir", doc, test))]
+#[cfg(feature = "midir")]
 impl Connection for MidiOutputConnection {
-	type Error = midir::SendError;
-
-	fn play(&mut self, msg: &MidiEvent) -> Result<(), Self::Error> {
-		let mut buf = Vec::with_capacity(4);
+	fn play(&mut self, msg: &MidiEvent) -> bool {
+		let mut buf = Vec::with_capacity(8);
 		let _ = msg.write(&mut buf);
-		self.send(&buf)
+
+		let _ = self.send(&buf);
+		true
 	}
 }

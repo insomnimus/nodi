@@ -26,9 +26,6 @@ Here are some real-world examples of nodi in action:
 -	[midnote][]: An accessible MIDI note viewer/ player.
 -	[plmidi][]: A MIDI player for the command line.
 
-# Debugging
-Nodi uses the [log][] crate for the logging; you can use a compatible logger for consumption.
-
 # Crate Features
 Features enabled by default:
 
@@ -37,12 +34,10 @@ Features enabled by default:
 Optional features:
 
 - `midir`: Adds implementations of `Connection` for `midir::MidiOutputConnection`.
-- `jack`: Same with `midir` but uses the Jack backend.
-- `winrt`: Same with `midir` but uses the WinRT backend.
-- `verbose-tracing`: Enables super verbose tracing, don't enable it unless you want to see the ticker tick.
+- `midir-jack`: Same with `midir` but uses the Jack backend.
+- `midir-winrt`: Same with `midir` but uses the WinRT backend.
 
 [midir]: https://crates.io/crates/midir
 [midly]: https://crates.io/crates/midly
 [plmidi]: https://github.com/insomnimus/plmidi
 [midnote]: https://github.com/insomnimus/midnote
-[log]: https://docs.rs/log/

@@ -2,7 +2,6 @@
 
 use std::{convert::TryFrom, fmt, sync::mpsc::Receiver, thread, time::Duration};
 
-use log::info;
 use midly::Timing;
 
 use crate::Timer;
@@ -27,12 +26,8 @@ impl fmt::Display for TimeFormatError {
 
 /// Implements a Metrical [Timer].
 ///
-/// # Notes
 /// Use this when the MIDI file header specifies the time format as being
 /// [Timing::Metrical], this is the case 99% of the time.
-///
-/// Set the log level to `info` (using the [log] crate) for logging the tempo
-/// change events.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ticker {
 	ticks_per_beat: u16,
@@ -77,13 +72,6 @@ impl Ticker {
 impl Timer for Ticker {
 	fn change_tempo(&mut self, tempo: u32) {
 		let micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
-		info! {
-			target: "Ticker",
-			"tempo change: {} (microseconds per tick: {} -> {})",
-			tempo,
-			self.micros_per_tick,
-			micros_per_tick,
-		};
 		self.micros_per_tick = micros_per_tick;
 	}
 
@@ -119,7 +107,7 @@ impl TryFrom<Timing> for Ticker {
 /// # Notes
 /// This type corresponds to [Timing::Timecode] and can be converted using
 /// [TryFrom::try_from]. Try to avoid using this timer because it's not tested
-/// (it's very rare to get [Timing::Timecode] in real life).
+/// (I couldn't find any MIDI files using [Timing::Timecode]).
 pub struct FixedTempo(pub u64);
 
 impl TryFrom<Timing> for FixedTempo {
@@ -193,7 +181,7 @@ impl ControlTicker {
 	}
 
 	/// Casts `self` to a [Ticker].
-	pub fn as_ticker(&self) -> Ticker {
+	pub fn to_ticker(&self) -> Ticker {
 		Ticker {
 			ticks_per_beat: self.ticks_per_beat,
 			micros_per_tick: self.micros_per_tick,
@@ -205,13 +193,6 @@ impl ControlTicker {
 impl Timer for ControlTicker {
 	fn change_tempo(&mut self, tempo: u32) {
 		let micros_per_tick = tempo as f64 / self.ticks_per_beat as f64;
-		info! {
-			target: "Ticker",
-			"tempo change: {} (microseconds per tick: {} -> {})",
-			tempo,
-			self.micros_per_tick,
-			micros_per_tick,
-		};
 		self.micros_per_tick = micros_per_tick;
 	}
 
@@ -226,31 +207,20 @@ impl Timer for ControlTicker {
 
 	/// Same with [Ticker::sleep], except it checks if there are any messages on
 	/// [self.pause], if there is a message, waits for another one before
-	/// ocntinuing with the sleep.
-	///
-	/// # Notes
-	/// Using the [log] crate and setting the log level to info, pauses and
-	/// unpauses will be logged.
+	/// continuing with the sleep.
 	fn sleep(&self, n_ticks: u32) {
 		// Check if we're supposed to be paused.
 		if self.pause.try_recv().is_ok() {
-			info!(target: "Timer", "received pause message, blocking the thread");
 			// Wait for the next message in order to continue, continue.
 			self.pause
 				.recv()
 				.unwrap_or_else(|e| panic!("Ticker: pause channel receive failed: {:?}", e));
-			info!(target: "Timer", "received unpause message, continuing the thread");
 		}
 
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
-			#[cfg(feature = "verbose-tracing")]
-			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			sleep(t);
-		} else {
-			#[cfg(feature = "verbose-tracing")]
-			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
 }
@@ -297,6 +267,4 @@ fn spin_lock(t: Duration) {
 }
 
 #[cfg(not(any(doc, test, feature = "hybrid-sleep")))]
-pub(crate) fn sleep(t: Duration) {
-	thread::sleep(t);
-}
+pub(crate) use thread::sleep;

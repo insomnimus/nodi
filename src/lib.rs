@@ -10,6 +10,8 @@ pub mod timers;
 use std::time::Duration;
 
 pub use event::*;
+/// Re-export of the [midly] crate.
+pub use midly;
 pub use player::*;
 pub use sheet::*;
 use timers::sleep;
@@ -35,22 +37,11 @@ pub trait Timer {
 	/// # Notes
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
-	///
-	/// With the provided implementation: If the `verbose-tracing` feature is
-	/// enabled and the log level is set to `debug`, the sleep duration will be
-	/// logged before any sleep happens. If the log level is set to `trace`, the
-	/// times when the returned duration is 0 (does not cause a sleep),
-	/// will also be logged.
 	fn sleep(&self, n_ticks: u32) {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {
-			#[cfg(feature = "verbose-tracing")]
-			log::debug!(target: "Timer", "sleeping the thread for {:?}", &t);
 			sleep(t);
-		} else {
-			#[cfg(feature = "verbose-tracing")]
-			log::trace!(target: "Timer", "timer returned 0 duration, not sleeping")
 		}
 	}
 

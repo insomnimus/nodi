@@ -2,8 +2,11 @@ use std::{convert::TryFrom, error::Error, fs};
 
 use clap::{arg, Command};
 use midir::{MidiOutput, MidiOutputConnection};
-use midly::{Format, Smf};
-use nodi::{timers::Ticker, Player, Sheet};
+use nodi::{
+	midly::{Format, Smf},
+	timers::Ticker,
+	Player, Sheet,
+};
 
 struct Args {
 	file: String,
@@ -58,7 +61,7 @@ impl Args {
 		let mut player = Player::new(timer, con);
 
 		println!("starting playback");
-		player.play_sheet(&sheet);
+		player.play(&sheet);
 		Ok(())
 	}
 }

@@ -45,7 +45,7 @@ impl<T: Timer, C: Connection> Player<T, C> {
 					match event {
 						Event::Tempo(val) => self.timer.change_tempo(*val),
 						Event::Midi(msg) => {
-							if !self.con.play(msg) {
+							if !self.con.play(*msg) {
 								return false;
 							}
 						}
@@ -69,12 +69,12 @@ pub trait Connection {
 	/// Given a [MidiEvent], plays the message.
 	///
 	/// If this function returns `false`, [Player::play] will stop playing and return.
-	fn play(&mut self, msg: &MidiEvent) -> bool;
+	fn play(&mut self, event: MidiEvent) -> bool;
 }
 
 #[cfg(feature = "midir")]
 impl Connection for MidiOutputConnection {
-	fn play(&mut self, msg: &MidiEvent) -> bool {
+	fn play(&mut self, msg: MidiEvent) -> bool {
 		let mut buf = Vec::with_capacity(8);
 		let _ = msg.write(&mut buf);
 

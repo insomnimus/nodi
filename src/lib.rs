@@ -2,6 +2,7 @@
 #![warn(missing_docs, rustdoc::missing_crate_level_docs)]
 #![doc = include_str!("doc_lib.md")]
 
+pub mod compose;
 mod event;
 mod player;
 mod sheet;
@@ -9,11 +10,9 @@ pub mod timers;
 
 use std::time::Duration;
 
-pub use event::*;
+pub use self::{compose::Compose, event::*, player::*, sheet::*};
 /// Re-export of the [midly] crate.
 pub use midly;
-pub use player::*;
-pub use sheet::*;
 use timers::sleep;
 
 /// Used for timing MIDI playback.

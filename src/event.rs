@@ -1,39 +1,30 @@
 mod transpose;
 
-use std::{convert::TryFrom, io};
+use std::{
+	convert::TryFrom,
+	io,
+	ops::{Deref, DerefMut},
+};
 
 use midly::{live::LiveEvent, num::u4, MetaMessage, MidiMessage, TrackEventKind};
 
 /// Represents a single moment (tick) in a MIDI track.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Moment {
-	/// There are no MIDI events at this moment.
-	Empty,
-	/// There is at least one MIDI event at this moment.
-	Events(Vec<Event>),
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct Moment {
+	/// Events in this moment.
+	pub events: Vec<Event>,
 }
 
-impl Default for Moment {
-	fn default() -> Self {
-		Self::Empty
+impl Deref for Moment {
+	type Target = Vec<Event>;
+	fn deref(&self) -> &Self::Target {
+		&self.events
 	}
 }
 
-impl Moment {
-	/// Adds an [Event] to `self`.
-	/// Will change `self` to [Self::Events] if `self` is [Self::Empty].
-	pub fn push(&mut self, e: Event) {
-		match self {
-			Self::Events(events) => events.push(e),
-			Self::Empty => {
-				*self = Self::Events(vec![e]);
-			}
-		};
-	}
-
-	/// Returns `true` if `self` is [Self::Empty].
-	pub fn is_empty(&self) -> bool {
-		*self == Self::Empty
+impl DerefMut for Moment {
+	fn deref_mut(&mut self) -> &mut Self::Target {
+		&mut self.events
 	}
 }
 

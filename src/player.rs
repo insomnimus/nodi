@@ -37,25 +37,23 @@ impl<T: Timer, C: Connection> Player<T, C> {
 		let mut counter = 0_u32;
 
 		for moment in sheet {
-			match moment {
-				Moment::Events(events) if !events.is_empty() => {
-					self.timer.sleep(counter);
-					counter = 0;
+			if !moment.is_empty() {
+				self.timer.sleep(counter);
+				counter = 0;
 
-					for event in events {
-						match event {
-							Event::Tempo(val) => self.timer.change_tempo(*val),
-							Event::Midi(msg) => {
-								if !self.con.play(msg) {
-									return false;
-								}
+				for event in &moment.events {
+					match event {
+						Event::Tempo(val) => self.timer.change_tempo(*val),
+						Event::Midi(msg) => {
+							if !self.con.play(msg) {
+								return false;
 							}
-							_ => (),
-						};
-					}
+						}
+						_ => (),
+					};
 				}
-				_ => (),
-			};
+			}
+
 			counter += 1;
 		}
 

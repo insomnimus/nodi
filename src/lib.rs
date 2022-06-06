@@ -53,16 +53,11 @@ pub trait Timer {
 		let mut counter = Duration::default();
 		for moment in moments {
 			counter += self.sleep_duration(1);
-			match moment {
-				Moment::Events(events) if !events.is_empty() => {
-					for event in events {
-						if let Event::Tempo(val) = event {
-							self.change_tempo(*val);
-						}
-					}
+			for event in &moment.events {
+				if let Event::Tempo(val) = event {
+					self.change_tempo(*val);
 				}
-				_ => (),
-			};
+			}
 		}
 		counter
 	}

@@ -84,18 +84,13 @@ impl Sheet {
 }
 
 fn find_time_sig(m: &Moment) -> Option<TimeSignature> {
-	match m {
-		Moment::Empty => None,
-		Moment::Events(events) => {
-			for e in events {
-				if let Event::TimeSignature(n, d, ..) = e {
-					return Some(TimeSignature {
-						numerator: *n,
-						denominator: *d,
-					});
-				}
-			}
-			None
+	for e in &m.events {
+		if let Event::TimeSignature(n, d, ..) = e {
+			return Some(TimeSignature {
+				numerator: *n,
+				denominator: *d,
+			});
 		}
 	}
+	None
 }

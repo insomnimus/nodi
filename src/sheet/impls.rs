@@ -31,7 +31,7 @@ impl<'a> From<&[TrackEvent<'a>]> for Sheet {
 			.map(|e| u32::from(e.delta) as usize)
 			.sum::<usize>()
 			+ 1;
-		let mut buf = vec![Moment::Empty; total_frames];
+		let mut buf = vec![Moment::default(); total_frames];
 
 		let mut cur_pos = 0_usize;
 

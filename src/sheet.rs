@@ -99,14 +99,12 @@ impl Sheet {
 	pub fn merge_with(&mut self, other: Self) {
 		if other.len() > self.len() {
 			let n_new = other.len() - self.len();
-			self.0.extend((0..n_new).map(|_| Moment::Empty))
+			self.0.extend((0..n_new).map(|_| Moment::default()))
 		}
 
 		for (i, moment) in other.0.into_iter().enumerate() {
-			if let Moment::Events(events) = moment {
-				for e in events {
-					self[i].push(e);
-				}
+			for e in moment.events {
+				self[i].push(e);
 			}
 		}
 	}

@@ -2,7 +2,6 @@
 #![warn(missing_docs, rustdoc::missing_crate_level_docs)]
 #![doc = include_str!("doc_lib.md")]
 
-pub mod compose;
 mod event;
 mod player;
 mod sheet;
@@ -10,7 +9,7 @@ pub mod timers;
 
 use std::time::Duration;
 
-pub use self::{compose::Compose, event::*, player::*, sheet::*};
+pub use self::{event::*, player::*, sheet::*};
 /// Re-export of the [midly] crate.
 pub use midly;
 use timers::sleep;
@@ -21,7 +20,7 @@ pub trait Timer {
 	///
 	/// # Arguments
 	/// - `n_ticks`: Number of MIDI ticks to sleep for.
-	fn sleep_duration(&self, n_ticks: u32) -> Duration;
+	fn sleep_duration(&mut self, n_ticks: u32) -> Duration;
 
 	/// Changes the timers tempo.
 	///
@@ -36,7 +35,7 @@ pub trait Timer {
 	/// # Notes
 	/// The provided implementation will not sleep if
 	/// `self.sleep_duration(n_ticks).is_zero()`.
-	fn sleep(&self, n_ticks: u32) {
+	fn sleep(&mut self, n_ticks: u32) {
 		let t = self.sleep_duration(n_ticks);
 
 		if !t.is_zero() {

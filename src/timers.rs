@@ -75,7 +75,7 @@ impl Timer for Ticker {
 		self.micros_per_tick = micros_per_tick;
 	}
 
-	fn sleep_duration(&self, n_ticks: u32) -> Duration {
+	fn sleep_duration(&mut self, n_ticks: u32) -> Duration {
 		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
 		if t > 0.0 {
 			Duration::from_micros(t as u64)
@@ -124,7 +124,7 @@ impl TryFrom<Timing> for FixedTempo {
 }
 
 impl Timer for FixedTempo {
-	fn sleep_duration(&self, n_ticks: u32) -> Duration {
+	fn sleep_duration(&mut self, n_ticks: u32) -> Duration {
 		Duration::from_millis(self.0 * n_ticks as u64)
 	}
 
@@ -196,7 +196,7 @@ impl Timer for ControlTicker {
 		self.micros_per_tick = micros_per_tick;
 	}
 
-	fn sleep_duration(&self, n_ticks: u32) -> Duration {
+	fn sleep_duration(&mut self, n_ticks: u32) -> Duration {
 		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
 		if t > 0.0 {
 			Duration::from_micros(t as u64)
@@ -208,7 +208,7 @@ impl Timer for ControlTicker {
 	/// Same with [Ticker::sleep], except it checks if there are any messages on
 	/// [self.pause], if there is a message, waits for another one before
 	/// continuing with the sleep.
-	fn sleep(&self, n_ticks: u32) {
+	fn sleep(&mut self, n_ticks: u32) {
 		// Check if we're supposed to be paused.
 		if self.pause.try_recv().is_ok() {
 			// Wait for the next message in order to continue, continue.

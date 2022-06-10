@@ -1,5 +1,6 @@
 #[cfg(feature = "midir")]
 use midir::{self, MidiOutputConnection};
+use midly::live::{SystemCommon, SystemRealtime};
 
 use crate::{
 	event::{Event, MidiEvent, Moment},
@@ -20,9 +21,9 @@ impl<T: Timer, C: Connection> Player<T, C> {
 		Self { con, timer }
 	}
 
-	/// Changes `self.timer`.
-	pub fn set_timer(&mut self, timer: T) {
-		self.timer = timer;
+	/// Changes `self.timer`, returning the old one.
+	pub fn set_timer(&mut self, timer: T) -> T {
+		std::mem::replace(&mut self.timer, timer)
 	}
 
 	/// Plays the given [Moment] slice.
@@ -70,6 +71,16 @@ pub trait Connection {
 	///
 	/// If this function returns `false`, [Player::play] will stop playing and return.
 	fn play(&mut self, event: MidiEvent) -> bool;
+
+	/// Sends a system realtime message.
+	///
+	/// The default implementation of this method does nothing.
+	fn send_sys_rt(&mut self, _msg: SystemRealtime) {}
+
+	/// Sends a system common message.
+	///
+	/// The default implementation of this method does nothing.
+	fn send_sys_common(&mut self, _msg: SystemCommon<'_>) {}
 }
 
 #[cfg(feature = "midir")]
@@ -80,5 +91,17 @@ impl Connection for MidiOutputConnection {
 
 		let _ = self.send(&buf);
 		true
+	}
+
+	fn send_sys_rt(&mut self, msg: SystemRealtime) {
+		let mut buf = Vec::with_capacity(8);
+		let _ = midly::live::LiveEvent::Realtime(msg).write(&mut buf);
+		let _ = self.send(&buf);
+	}
+
+	fn send_sys_common(&mut self, msg: SystemCommon<'_>) {
+		let mut buf = Vec::with_capacity(8);
+		let _ = midly::live::LiveEvent::Common(msg).write(&mut buf);
+		let _ = self.send(&buf);
 	}
 }

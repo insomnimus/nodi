@@ -10,8 +10,10 @@ pub mod timers;
 use std::time::Duration;
 
 pub use self::{event::*, player::*, sheet::*};
-/// Re-export of the [midly] crate.
+#[cfg(feature = "midir")]
+pub use midir;
 pub use midly;
+
 use timers::sleep;
 
 /// Used for timing MIDI playback.

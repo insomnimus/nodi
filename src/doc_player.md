@@ -6,6 +6,7 @@ A type that orchestrates playing of MIDI tracks.
 -  A [Connection] to send the MIDI events when they are ready to play.
 
 So, [Player] is the glue that binds timing and playback.
+> This type is more of a convenience struct; it cannot possibly satisfy all use cases.
 
 # Implementation Details
 In this section, the `"track"` refers to either a [Sheet][crate::Sheet] or a slice of [Moment]s.

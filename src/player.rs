@@ -1,6 +1,9 @@
 #[cfg(feature = "midir")]
 use midir::{self, MidiOutputConnection};
-use midly::live::{SystemCommon, SystemRealtime};
+use midly::{
+	live::{SystemCommon, SystemRealtime},
+	MidiMessage,
+};
 
 use crate::{
 	event::{Event, MidiEvent, Moment},
@@ -81,6 +84,23 @@ pub trait Connection {
 	///
 	/// The default implementation of this method does nothing.
 	fn send_sys_common(&mut self, _msg: SystemCommon<'_>) {}
+
+	/// Turns all notes off.
+	///
+	/// The provided implementation simply blasts every channel with NoteOff messages for every possible note; `16 * 128 = 2048` messages will be sent.
+	fn all_notes_off(&mut self) {
+		for ch in 0..16 {
+			for note in 0..=127 {
+				self.play(MidiEvent {
+					channel: ch.into(),
+					message: MidiMessage::NoteOff {
+						key: note.into(),
+						vel: 127.into(),
+					},
+				});
+			}
+		}
+	}
 }
 
 #[cfg(feature = "midir")]

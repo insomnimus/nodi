@@ -6,7 +6,7 @@
 
 Nodi provides types and functions for playback and abstraction of MIDI files.
  
-This crate works alongside with the [midly][] and [midir][] crates. 
+This crate works alongside the [midly][] and [midir][] crates. 
 However you can implement your own MIDI player, instead of relying on [midir][].
 
 # Features

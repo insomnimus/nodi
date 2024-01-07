@@ -41,7 +41,7 @@ impl Iterator for Bars {
 		}
 
 		let len_32nd = self.tpb / 8.0;
-		let chunk_len = (self.time_sig.bar_32s() * len_32nd as f32) as usize;
+		let chunk_len = (self.time_sig.bar_32s() * len_32nd) as usize;
 		let mut temp = Vec::with_capacity(chunk_len);
 		temp.push(first);
 

@@ -24,7 +24,7 @@ impl IntoIterator for Sheet {
 	}
 }
 
-impl<'a> From<&[TrackEvent<'a>]> for Sheet {
+impl From<&[TrackEvent<'_>]> for Sheet {
 	fn from(events: &[TrackEvent<'_>]) -> Self {
 		let total_frames = events
 			.iter()

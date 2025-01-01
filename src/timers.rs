@@ -1,10 +1,16 @@
 #![doc = include_str!("doc_timers.md")]
 
-use std::{convert::TryFrom, fmt, sync::mpsc::Receiver, thread, time::Duration};
+use std::{
+	convert::TryFrom,
+	fmt,
+	sync::mpsc::Receiver,
+	thread,
+	time::{Duration, Instant},
+};
 
 use midly::Timing;
 
-use crate::Timer;
+use crate::{Event, Moment, Timer};
 
 /// An error that might arise while converting [Timing] to a [Ticker] or
 /// [FixedTempo].
@@ -32,6 +38,7 @@ impl fmt::Display for TimeFormatError {
 pub struct Ticker {
 	ticks_per_beat: u16,
 	micros_per_tick: f64,
+	last_instant: Option<Instant>,
 	/// Speed modifier, a value of `1.0` is the default and affects nothing.
 	///
 	/// Important: Do not set to 0.0, this value is used as a denominator.
@@ -39,7 +46,8 @@ pub struct Ticker {
 }
 
 impl Ticker {
-	/// Creates an instance of [Self] with the given ticks-per-beat.
+	/// Create an instance of a [Ticker] with the given ticks-per-beat.
+	///
 	/// The tempo will be infinitely rapid, meaning no sleeps will happen.
 	/// However this is rarely an issue since a tempo change message will set
 	/// it, and this usually happens before any non-0 offset event.
@@ -47,11 +55,12 @@ impl Ticker {
 		Self {
 			ticks_per_beat,
 			micros_per_tick: 0.0,
+			last_instant: None,
 			speed: 1.0,
 		}
 	}
 
-	/// Will create an instance of [Self] with a provided tempo.
+	/// Create an instance of a [Ticker] with a provided tempo.
 	pub fn with_initial_tempo(ticks_per_beat: u16, tempo: u32) -> Self {
 		let mut s = Self::new(ticks_per_beat);
 		s.change_tempo(tempo);
@@ -63,8 +72,21 @@ impl Ticker {
 		ControlTicker {
 			speed: self.speed,
 			micros_per_tick: self.micros_per_tick,
+			last_instant: self.last_instant,
 			ticks_per_beat: self.ticks_per_beat,
 			pause,
+		}
+	}
+
+	/// Calculate the duration of `n_ticks` ticks, without accounting for the last time this [Ticker] ticked.
+	/// This is useful for calculating the duration of a song, for example.
+	pub fn sleep_duration_without_readjustment(&self, n_ticks: u32) -> Duration {
+		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
+
+		if t > 0.0 {
+			Duration::from_micros(t as u64)
+		} else {
+			Duration::default()
 		}
 	}
 }
@@ -76,12 +98,33 @@ impl Timer for Ticker {
 	}
 
 	fn sleep_duration(&mut self, n_ticks: u32) -> Duration {
-		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
-		if t > 0.0 {
-			Duration::from_micros(t as u64)
-		} else {
-			Duration::default()
+		let mut t = self.sleep_duration_without_readjustment(n_ticks);
+
+		match self.last_instant {
+			Some(last_instant) => {
+				self.last_instant = Some(last_instant + t);
+				t = t.checked_sub(last_instant.elapsed()).unwrap_or(t);
+			}
+			None => self.last_instant = Some(Instant::now()),
 		}
+
+		t
+	}
+
+	fn duration(&mut self, moments: &[Moment]) -> Duration {
+		let mut counter = Duration::default();
+
+		for moment in moments {
+			counter += self.sleep_duration_without_readjustment(1);
+
+			for event in &moment.events {
+				if let Event::Tempo(val) = event {
+					self.change_tempo(*val);
+				}
+			}
+		}
+
+		counter
 	}
 }
 
@@ -151,6 +194,7 @@ impl Timer for FixedTempo {
 pub struct ControlTicker {
 	ticks_per_beat: u16,
 	micros_per_tick: f64,
+	last_instant: Option<Instant>,
 	/// Speed modifier, a value of `1.0` is the default and affects nothing.
 	///
 	/// Important: Do not set to 0.0, this value is used as a denominator.
@@ -160,7 +204,7 @@ pub struct ControlTicker {
 }
 
 impl ControlTicker {
-	/// Creates an instance of [Self] with the given ticks-per-beat.
+	/// Create an instance of [ControlTicker] with the given ticks-per-beat.
 	/// The tempo will be infinitely rapid, meaning no sleeps will happen.
 	/// However this is rarely an issue since a tempo change message will set
 	/// it, and this usually happens before any non-0 offset event.
@@ -168,24 +212,38 @@ impl ControlTicker {
 		Self {
 			ticks_per_beat,
 			pause,
+			last_instant: None,
 			micros_per_tick: 0.0,
 			speed: 1.0,
 		}
 	}
 
-	/// Will create an instance of [Self] with a provided tempo.
+	/// Create an instance of [ControlTicker] with a provided tempo.
 	pub fn with_initial_tempo(ticks_per_beat: u16, tempo: u32, pause: Receiver<()>) -> Self {
 		let mut s = Self::new(ticks_per_beat, pause);
 		s.change_tempo(tempo);
 		s
 	}
 
-	/// Casts `self` to a [Ticker].
+	/// Get a [Ticker].
 	pub fn to_ticker(&self) -> Ticker {
 		Ticker {
 			ticks_per_beat: self.ticks_per_beat,
 			micros_per_tick: self.micros_per_tick,
+			last_instant: None,
 			speed: self.speed,
+		}
+	}
+
+	/// Calculate the duration of `n_ticks` ticks, without accounting for the last time this [Ticker] ticked.
+	/// This is useful for calculating the duration of a song, for example.
+	pub fn sleep_duration_without_readjustment(&self, n_ticks: u32) -> Duration {
+		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
+
+		if t > 0.0 {
+			Duration::from_micros(t as u64)
+		} else {
+			Duration::default()
 		}
 	}
 }
@@ -197,12 +255,17 @@ impl Timer for ControlTicker {
 	}
 
 	fn sleep_duration(&mut self, n_ticks: u32) -> Duration {
-		let t = self.micros_per_tick * n_ticks as f64 / self.speed as f64;
-		if t > 0.0 {
-			Duration::from_micros(t as u64)
-		} else {
-			Duration::default()
+		let mut t = self.sleep_duration_without_readjustment(n_ticks);
+
+		match self.last_instant {
+			Some(last_instant) => {
+				self.last_instant = Some(last_instant + t);
+				t = t.checked_sub(last_instant.elapsed()).unwrap_or(t);
+			}
+			None => self.last_instant = Some(Instant::now()),
 		}
+
+		t
 	}
 
 	/// Same with [Ticker::sleep], except it checks if there are any messages on
@@ -214,7 +277,9 @@ impl Timer for ControlTicker {
 			// Wait for the next message in order to continue, continue.
 			self.pause
 				.recv()
-				.unwrap_or_else(|e| panic!("Ticker: pause channel receive failed: {:?}", e));
+				.unwrap_or_else(|e| panic!("ControlTicker: pause channel receive failed: {:?}", e));
+
+			self.last_instant = None;
 		}
 
 		let t = self.sleep_duration(n_ticks);
@@ -223,11 +288,27 @@ impl Timer for ControlTicker {
 			sleep(t);
 		}
 	}
+
+	fn duration(&mut self, moments: &[Moment]) -> Duration {
+		let mut counter = Duration::default();
+
+		for moment in moments {
+			counter += self.sleep_duration_without_readjustment(1);
+
+			for event in &moment.events {
+				if let Event::Tempo(val) = event {
+					self.change_tempo(*val);
+				}
+			}
+		}
+
+		counter
+	}
 }
 
-/// Sleeps the thread with the given duration.
+/// Pauses the thread for the provided duration.
 ///
-/// Sleeps with [thread::sleep] for the most of the time
+/// Sleeps with [thread::sleep] for most of the time
 /// and spin-locks for the last T milliseconds, where T:
 /// - Windows: 15.
 /// - Non-Windows: 3.

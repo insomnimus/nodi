@@ -77,7 +77,7 @@ impl MidiEvent {
 	}
 }
 
-impl<'a> TryFrom<TrackEventKind<'a>> for Event {
+impl TryFrom<TrackEventKind<'_>> for Event {
 	type Error = &'static str;
 
 	/// Tries to create [Self] from a [TrackEventKind].
